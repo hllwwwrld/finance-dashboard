@@ -23,7 +23,7 @@ func New(handlers HandlersMap) (*Implementation, error) {
 	mux := http.NewServeMux()
 	server := &http.Server{
 		// перенсти адрес в конфиг
-		Addr:    "localhost:3000",
+		Addr:    "0.0.0.0:3000",
 		Handler: mux,
 
 		// todo перенести таймауты в конфиг

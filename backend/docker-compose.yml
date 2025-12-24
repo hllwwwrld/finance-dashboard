@@ -1,0 +1,85 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: finance-dashboard-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-dashboard}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-dashboard}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dashboard-network
+
+  migrations:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-dashboard-migrations
+    environment:
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-${POSTGRES_USER:-postgres}}
+      - DB_PASSWORD=${DB_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}
+      - DB_NAME=${DB_NAME:-${POSTGRES_DB:-dashboard}}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+    command: >
+      sh -c "
+        if [ \"$${DB_SSLMODE}\" = \"disable\" ]; then
+          echo 'Skipping migrations (DB_SSLMODE=disable - local development mode)' &&
+          exit 0
+        fi &&
+        echo 'Waiting for database to be ready...' &&
+        until goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" status > /dev/null 2>&1; do
+          echo 'Database is unavailable - sleeping...' &&
+          sleep 1
+        done &&
+        echo 'Database is ready!' &&
+        echo 'Running database migrations...' &&
+        goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" up &&
+        echo 'Migrations completed successfully!'
+      "
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dashboard-network
+    restart: "no"
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-dashboard-backend
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+    environment:
+      - DB_HOST=${DB_HOST:-postgres}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_USER=${DB_USER:-${POSTGRES_USER:-postgres}}
+      - DB_PASSWORD=${DB_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}
+      - DB_NAME=${DB_NAME:-${POSTGRES_DB:-dashboard}}
+      - DB_SSLMODE=${DB_SSLMODE:-disable}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrations:
+        condition: service_completed_successfully
+    networks:
+      - dashboard-network
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  dashboard-network:
+    driver: bridge
+
