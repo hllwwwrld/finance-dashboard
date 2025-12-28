@@ -39,6 +39,9 @@ func (s *service) GetByUserID(ctx context.Context, userID string) ([]*models.Pay
 	}
 
 	res, err := scanRows[models.Payment](rows)
+	if err != nil {
+		return nil, fmt.Errorf("GetByUserID.scanRows err: %w", err)
+	}
 
 	return res, nil
 }
