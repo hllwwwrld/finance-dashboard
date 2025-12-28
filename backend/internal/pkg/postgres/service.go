@@ -31,12 +31,12 @@ func New(ctx context.Context) (*Service, error) {
 	// Открываем подключение к БД
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database connection: %w", err)
+		return nil, fmt.Errorf("sql.Open err %w", err)
 	}
 
 	// Проверяем подключение
 	if err := pingWithRetry(ctx, db); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, fmt.Errorf("pingWithRetry err: %w", err)
 	}
 
 	//db.SetMaxOpenConns(25)        // Максимум открытых соединений

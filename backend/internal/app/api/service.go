@@ -9,6 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/finance-dashboard/backend/internal/pkg/tables"
 )
 
 type Handler func(resp http.ResponseWriter, req *http.Request)
@@ -17,6 +19,8 @@ type HandlersMap map[string]Handler
 
 type Implementation struct {
 	server *http.Server
+
+	paymentsTable tables.Payments
 }
 
 func New(handlers HandlersMap) (*Implementation, error) {
