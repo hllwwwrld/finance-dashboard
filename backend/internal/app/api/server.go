@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/finance-dashboard/backend/internal/pkg/middlewares"
 	"github.com/finance-dashboard/backend/internal/pkg/tables"
 )
 
@@ -46,7 +47,7 @@ func New(handlers HandlersMap) (*Implementation, error) {
 
 func (i *Implementation) RegisterHandlers(mux *http.ServeMux, handlers HandlersMap) {
 	for path, handler := range handlers {
-		mux.Handle(path, NewHTTPHandler(handler))
+		mux.Handle(path, middlewares.Log(http.HandlerFunc(handler)))
 	}
 }
 
