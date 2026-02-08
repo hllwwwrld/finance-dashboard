@@ -11,7 +11,7 @@ import (
 
 var columnsMap = sync.Map{}
 
-// Columns returns columns
+// Columns returning names of columns by 'db' attribute from go structure, made for parsing rows from postgres/squirrel
 func columns(v any) []string {
 	tp := reflect.TypeOf(v)
 	name := tp.String()
@@ -51,6 +51,10 @@ func columns(v any) []string {
 	columnsMap.Store(name, cols)
 
 	return cols
+}
+
+func returningAllColumns(v any) string {
+	return fmt.Sprintf("RETURNING %s", strings.Join(columns(v), ", "))
 }
 
 func scanRows[T any](rows *sql.Rows) (res []*T, err error) {

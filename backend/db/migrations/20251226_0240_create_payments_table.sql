@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS public.payments
+CREATE TABLE IF NOT EXISTS public.payment
 (
     id TEXT DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -16,5 +16,5 @@ CREATE TABLE IF NOT EXISTS public.payments
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS payments
+DROP TABLE IF EXISTS payment
 -- +goose StatementEnd

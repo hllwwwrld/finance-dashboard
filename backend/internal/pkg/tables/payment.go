@@ -8,22 +8,28 @@ import (
 	"github.com/finance-dashboard/backend/internal/pkg/postgres"
 )
 
-const usersTableName = "users"
+const paymentsTableName = "payment"
 
 type Payments interface {
 	GetByUserID(ctx context.Context, userID string) ([]*models.Payment, error)
+	Create(ctx context.Context, payment models.Payment) (*models.Payment, error)
 }
 
-type service struct {
+type paymentsTable struct {
 	psql  *postgres.Service
 	table string
 }
 
 func NewPayments(psql *postgres.Service) Payments {
-	return &service{psql: psql, table: usersTableName}
+	return &paymentsTable{psql: psql, table: paymentsTableName}
 }
 
-func (s *service) GetByUserID(ctx context.Context, userID string) ([]*models.Payment, error) {
+func (s *paymentsTable) Create(ctx context.Context, payment models.Payment) (*models.Payment, error) {
+	// todo
+	return nil, fmt.Errorf("unimplemented")
+}
+
+func (s *paymentsTable) GetByUserID(ctx context.Context, userID string) ([]*models.Payment, error) {
 	statement, args, err := s.psql.Builder.
 		Select(columns(new(models.Payment))...).
 		From(s.table).
