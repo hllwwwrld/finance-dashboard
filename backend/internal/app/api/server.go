@@ -13,9 +13,7 @@ import (
 	"github.com/finance-dashboard/backend/internal/pkg/middlewares"
 )
 
-type Handler func(resp http.ResponseWriter, req *http.Request)
-
-type HandlersMap map[string]Handler
+type HandlersMap map[string]http.HandlerFunc
 
 type Implementation struct {
 	server *http.Server
@@ -44,7 +42,7 @@ func New(handlers HandlersMap) (*Implementation, error) {
 
 func (i *Implementation) RegisterHandlers(mux *http.ServeMux, handlers HandlersMap) {
 	for path, handler := range handlers {
-		mux.Handle(path, middlewares.Log(http.HandlerFunc(handler)))
+		mux.Handle(path, middlewares.Log(handler))
 	}
 }
 
