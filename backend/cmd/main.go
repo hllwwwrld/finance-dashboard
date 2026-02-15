@@ -19,8 +19,10 @@ func main() {
 		log.Fatalf("postgres.New err: %v", err)
 	}
 	paymentsTable := tables.NewPayments(postgresConnection)
+	//usersTable := tables.NewUsers(postgresConnection)
 
 	paymentsService := payments.New(paymentsTable)
+	//usersService := users.New(usersTable)
 
 	server, err := api.New(
 		api.HandlersMap{
@@ -28,6 +30,8 @@ func main() {
 			// хендлеры для payments
 			config.PaymentsListEndpoint: paymentsService.PaymentsList,
 			// todo тут будут еще хендлеры пейментсов
+
+			// хендлеры для юзеров
 			// todo хенделеры для users
 		},
 	)
