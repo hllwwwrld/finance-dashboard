@@ -7,5 +7,5 @@ type UpdateMonthlyIncomeRequest struct {
 
 // UpdateMonthlyIncomeResponse ...
 type UpdateMonthlyIncomeResponse struct {
-	bool `json:"success"`
+	Success bool `json:"success"`
 }

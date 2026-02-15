@@ -6,6 +6,7 @@ import (
 
 	"github.com/finance-dashboard/backend/internal/app/api"
 	"github.com/finance-dashboard/backend/internal/app/api/payments"
+	"github.com/finance-dashboard/backend/internal/app/api/users"
 	"github.com/finance-dashboard/backend/internal/config"
 	"github.com/finance-dashboard/backend/internal/pkg/postgres"
 	"github.com/finance-dashboard/backend/internal/pkg/tables"
@@ -19,20 +20,25 @@ func main() {
 		log.Fatalf("postgres.New err: %v", err)
 	}
 	paymentsTable := tables.NewPayments(postgresConnection)
-	//usersTable := tables.NewUsers(postgresConnection)
+	usersTable := tables.NewUsers(postgresConnection)
 
 	paymentsService := payments.New(paymentsTable)
-	//usersService := users.New(usersTable)
+	usersService := users.New(usersTable)
 
 	server, err := api.New(
 		api.HandlersMap{
 			config.PingEndpoint: api.Ping,
-			// хендлеры для payments
-			config.PaymentsListEndpoint: paymentsService.PaymentsList,
-			// todo тут будут еще хендлеры пейментсов
 
 			// хендлеры для юзеров
-			// todo хенделеры для users
+			config.UserRegisterEndpoint:      usersService.Register,
+			config.UserLoginEndpoint:         usersService.Login,
+			config.UserProfileEndpoint:       usersService.FetchProfile,
+			config.UserProfileUpdateEndpoint: usersService.UpdateMonthlyIncome,
+			// todo config.UserLogoutEndpoint: usersService.Logout
+
+			// хендлеры для payments
+			config.PaymentsCreate:       paymentsService.CreatePayment,
+			config.PaymentsListEndpoint: paymentsService.PaymentsList,
 		},
 	)
 	if err != nil {

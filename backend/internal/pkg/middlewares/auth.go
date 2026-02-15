@@ -23,8 +23,10 @@ type Response struct {
 	Message string `json:"message"`
 }
 
+type CookieKey string
+
 const (
-	UserContextKey = "user"
+	UserContextKey = CookieKey("user")
 	authCookieName = "auth_token"
 )
 
