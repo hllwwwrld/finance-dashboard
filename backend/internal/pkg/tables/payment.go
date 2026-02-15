@@ -2,6 +2,7 @@ package tables
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 
 	"github.com/finance-dashboard/backend/internal/pkg/models"
@@ -25,8 +26,38 @@ func NewPayments(psql *postgres.Service) Payments {
 }
 
 func (s *paymentsTable) Create(ctx context.Context, payment models.Payment) (*models.Payment, error) {
-	// todo
-	return nil, fmt.Errorf("unimplemented")
+	statement, args, err := s.psql.Builder.
+		Insert(s.table).
+		Columns("name", "amount", "due_date", "category", "color").
+		Values(
+			payment.Name,
+			payment.Amount,
+			payment.DueDate,
+			payment.Category,
+			payment.Color).
+		Suffix(returningAllColumns(payment)).
+		ToSql()
+	if err != nil {
+		return nil, fmt.Errorf("CreatePayment.s.psql.Builder err: %w", err)
+	}
+
+	res := &models.Payment{}
+	err = s.psql.DB.QueryRowContext(ctx, statement, args).Scan(
+		&res.ID,
+		&res.UserID,
+		&res.Name,
+		&res.Amount,
+		&res.DueDate,
+		&res.Category,
+		&res.Color,
+		&res.CreatedAt,
+		&res.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("CreatePayment.s.psql.DB.QueryRowContext err: %w", err)
+	}
+
+	return res, nil
 }
 
 func (s *paymentsTable) GetByUserID(ctx context.Context, userID string) ([]*models.Payment, error) {
@@ -44,9 +75,34 @@ func (s *paymentsTable) GetByUserID(ctx context.Context, userID string) ([]*mode
 		return nil, fmt.Errorf("GetByUserID.s.psql.DB.QueryContext err: %w", err)
 	}
 
-	res, err := scanRows[models.Payment](rows)
+	res, err := scanPaymentRows(rows)
 	if err != nil {
 		return nil, fmt.Errorf("GetByUserID.scanRows err: %w", err)
+	}
+
+	return res, nil
+}
+
+func scanPaymentRows(rows *sql.Rows) (res []*models.Payment, err error) {
+	res = make([]*models.Payment, 0)
+	for rows.Next() {
+		var current models.Payment
+		err = rows.Scan(
+			&current.ID,
+			&current.UserID,
+			&current.Name,
+			&current.Amount,
+			&current.DueDate,
+			&current.Category,
+			&current.Color,
+			&current.CreatedAt,
+			&current.UpdatedAt,
+		)
+
+		if err != nil {
+			return nil, fmt.Errorf("GetByUserID.rows.Scan err: %w", err)
+		}
+		res = append(res, &current)
 	}
 
 	return res, nil
