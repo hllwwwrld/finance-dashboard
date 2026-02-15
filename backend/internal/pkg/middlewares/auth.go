@@ -24,7 +24,7 @@ type Response struct {
 }
 
 const (
-	userContextKey = "user"
+	UserContextKey = "user"
 	authCookieName = "auth_token"
 )
 
@@ -45,13 +45,13 @@ func Auth(next http.HandlerFunc) http.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), userContextKey, claims)
+		ctx := context.WithValue(r.Context(), UserContextKey, claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }
 
-// Генерация JWT токена (на этапе логина генерю куку авторизации)
-func generateJWT(userID, login string) (string, error) {
+// GenerateJWT Генерация JWT токена (на этапе логина генерю куку авторизации)
+func GenerateJWT(userID, login string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
 	claims := &Claims{
@@ -92,13 +92,4 @@ func validateJWT(tokenString string) (*Claims, error) {
 	}
 
 	return claims, nil
-}
-
-// Получение пользователя из контекста
-func getUserFromContext(r *http.Request) *Claims {
-	user, ok := r.Context().Value(userContextKey).(*Claims)
-	if !ok {
-		return nil
-	}
-	return user
 }
