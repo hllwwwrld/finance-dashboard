@@ -14,7 +14,7 @@ import (
 func (i *Implementation) Register(resp http.ResponseWriter, req *http.Request) {
 	bodyBytes, err := io.ReadAll(req.Body)
 	if err != nil {
-		http.Error(resp, fmt.Sprintf("PaymentsList.io.ReadAll err: %v", err), http.StatusInternalServerError)
+		http.Error(resp, fmt.Sprintf("Register.io.ReadAll err: %v", err), http.StatusInternalServerError)
 		return
 	}
 	defer req.Body.Close()
@@ -22,7 +22,7 @@ func (i *Implementation) Register(resp http.ResponseWriter, req *http.Request) {
 	reqBody := &models.RegisterUserRequest{}
 	err = json.Unmarshal(bodyBytes, reqBody)
 	if err != nil {
-		http.Error(resp, fmt.Sprintf("PaymentsList.json.Unmarshal err: %v", err), http.StatusInternalServerError)
+		http.Error(resp, fmt.Sprintf("Register.json.Unmarshal err: %v", err), http.StatusInternalServerError)
 		return
 	}
 
@@ -41,16 +41,17 @@ func (i *Implementation) Register(resp http.ResponseWriter, req *http.Request) {
 	_, err = i.usersTable.Create(req.Context(), user)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("usersTable.Create err: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	respBytes, err := json.Marshal(models.RegisterUserResponse{Success: true})
 	if err != nil {
-		http.Error(resp, fmt.Sprintf("PaymentsList.json.Marshal err: %v", err), http.StatusInternalServerError)
+		http.Error(resp, fmt.Sprintf("Register.json.Marshal err: %v", err), http.StatusInternalServerError)
 		return
 	}
 
 	resp.Header().Set("Content-Type", "application/json")
 	if _, err = resp.Write(respBytes); err != nil {
-		slog.Error(fmt.Sprintf("PaymentsList.resp.Write err: %v", err))
+		slog.Error(fmt.Sprintf("Register.resp.Write err: %v", err))
 	}
 }

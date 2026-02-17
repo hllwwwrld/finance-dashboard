@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS public.payment
+CREATE TABLE IF NOT EXISTS payment
 (
     id TEXT DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -9,8 +9,8 @@ CREATE TABLE IF NOT EXISTS public.payment
     due_date date NOT NULL,
     category TEXT NOT NULL,
     color TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIMEZONE DEFAULT now(),
-    updated_at TIMESTAMP WITH TIMEZONE DEFAULT now()
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT now() NOT NULL
 )
 -- +goose StatementEnd
 

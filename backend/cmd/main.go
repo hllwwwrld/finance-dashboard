@@ -33,13 +33,14 @@ func main() {
 			// хендлеры для юзеров
 			config.UserRegisterEndpoint:      usersService.Register,
 			config.UserLoginEndpoint:         usersService.Login,
-			config.UserProfileEndpoint:       middlewares.Auth(usersService.FetchProfile),
+			config.UserFetchProfileEndpoint:  middlewares.Auth(usersService.FetchProfile),
 			config.UserProfileUpdateEndpoint: middlewares.Auth(usersService.UpdateMonthlyIncome),
 			// todo config.UserLogoutEndpoint: usersService.Logout
 
 			// хендлеры для payments
 			config.PaymentsCreate:       middlewares.Auth(paymentsService.CreatePayment),
 			config.PaymentsListEndpoint: middlewares.Auth(paymentsService.PaymentsList),
+			// todo config.PaymentsDelete: paymentsService.Delete
 		},
 	)
 	if err != nil {

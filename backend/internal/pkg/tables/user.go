@@ -8,7 +8,7 @@ import (
 	"github.com/finance-dashboard/backend/internal/pkg/postgres"
 )
 
-const usersTableName = "payment"
+const usersTableName = "public.user"
 
 type Users interface {
 	Create(ctx context.Context, user models.User) (*models.User, error)
@@ -36,8 +36,13 @@ func (s *usersTable) Create(ctx context.Context, user models.User) (*models.User
 		return nil, fmt.Errorf("GetByUserID.s.psql.Builder err: %w", err)
 	}
 
+	row := s.psql.DB.QueryRowContext(ctx, statement, args...)
+	if row.Err() != nil {
+		return nil, fmt.Errorf("Create.User.s.psql.DB.QueryRowContext err: %v", row.Err())
+	}
+
 	res := &models.User{}
-	err = s.psql.DB.QueryRowContext(ctx, statement, args).Scan(
+	err = row.Scan(
 		&res.ID,
 		&res.Login,
 		&res.Password,
@@ -54,8 +59,8 @@ func (s *usersTable) Create(ctx context.Context, user models.User) (*models.User
 
 func (s *usersTable) GetByLogin(ctx context.Context, login string) (*models.User, error) {
 	statement, args, err := s.psql.Builder.
-		Select(s.table).
-		Columns(allColumnsString(new(models.User))).
+		Select(allColumnsString(new(models.User))).
+		From(s.table).
 		Where("login = ?", login).
 		ToSql()
 	if err != nil {
@@ -63,7 +68,7 @@ func (s *usersTable) GetByLogin(ctx context.Context, login string) (*models.User
 	}
 
 	res := &models.User{}
-	err = s.psql.DB.QueryRowContext(ctx, statement, args).Scan(
+	err = s.psql.DB.QueryRowContext(ctx, statement, args...).Scan(
 		&res.ID,
 		&res.Login,
 		&res.Password,
@@ -89,7 +94,7 @@ func (s *usersTable) UpdateMonthlyIncome(ctx context.Context, login string, mont
 	}
 
 	res := &models.User{}
-	err = s.psql.DB.QueryRowContext(ctx, statement, args).Scan(
+	err = s.psql.DB.QueryRowContext(ctx, statement, args...).Scan(
 		&res.ID,
 		&res.Login,
 		&res.Password,

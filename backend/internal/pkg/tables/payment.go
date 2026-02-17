@@ -9,7 +9,7 @@ import (
 	"github.com/finance-dashboard/backend/internal/pkg/postgres"
 )
 
-const paymentsTableName = "payment"
+const paymentsTableName = "public.payment"
 
 type Payments interface {
 	GetByUserID(ctx context.Context, userID string) ([]*models.Payment, error)
@@ -42,7 +42,7 @@ func (s *paymentsTable) Create(ctx context.Context, payment models.Payment) (*mo
 	}
 
 	res := &models.Payment{}
-	err = s.psql.DB.QueryRowContext(ctx, statement, args).Scan(
+	err = s.psql.DB.QueryRowContext(ctx, statement, args...).Scan(
 		&res.ID,
 		&res.UserID,
 		&res.Name,
@@ -70,7 +70,7 @@ func (s *paymentsTable) GetByUserID(ctx context.Context, userID string) ([]*mode
 		return nil, fmt.Errorf("GetByUserID.s.psql.Builder err: %w", err)
 	}
 
-	rows, err := s.psql.DB.QueryContext(ctx, statement, args)
+	rows, err := s.psql.DB.QueryContext(ctx, statement, args...)
 	if err != nil {
 		return nil, fmt.Errorf("GetByUserID.s.psql.DB.QueryContext err: %w", err)
 	}

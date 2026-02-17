@@ -11,8 +11,8 @@ type Implementation struct {
 	usersTable tables.Users
 }
 
-func New(paymentsTable tables.Users) *Implementation {
-	return &Implementation{usersTable: paymentsTable}
+func New(usersTable tables.Users) *Implementation {
+	return &Implementation{usersTable: usersTable}
 }
 
 // GetUserFromContext - Получение пользователя из контекста

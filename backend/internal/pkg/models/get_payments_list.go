@@ -1,8 +1,6 @@
 package models
 
-type PaymentsListRequest struct {
-	UserID string `json:"userId"`
-}
+type PaymentsListRequest struct{}
 
 type PaymentsListResponse struct {
 	Payments []Payment `json:"payments"`
