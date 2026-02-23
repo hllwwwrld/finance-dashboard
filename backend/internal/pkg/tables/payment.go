@@ -28,8 +28,9 @@ func NewPayments(psql *postgres.Service) Payments {
 func (s *paymentsTable) Create(ctx context.Context, payment models.Payment) (*models.Payment, error) {
 	statement, args, err := s.psql.Builder.
 		Insert(s.table).
-		Columns("name", "amount", "due_date", "category", "color").
+		Columns("user_id", "name", "amount", "due_date", "category", "color").
 		Values(
+			payment.UserID,
 			payment.Name,
 			payment.Amount,
 			payment.DueDate,

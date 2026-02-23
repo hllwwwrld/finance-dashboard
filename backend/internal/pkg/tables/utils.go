@@ -37,6 +37,9 @@ func columns(v any) []string {
 	for idx := 0; idx < tp.NumField(); idx++ {
 		f := tp.Field(idx)
 		tag := f.Tag.Get("db")
+		if tag == "-" {
+			continue
+		}
 		if tag == "" {
 			tag = strings.ToLower(f.Name)
 		}

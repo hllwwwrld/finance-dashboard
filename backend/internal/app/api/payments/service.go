@@ -5,6 +5,7 @@ import (
 
 	"github.com/finance-dashboard/backend/internal/pkg/models"
 	"github.com/finance-dashboard/backend/internal/pkg/tables"
+	"github.com/samber/lo"
 )
 
 type Implementation struct {
@@ -28,5 +29,7 @@ func calculateDaysUntil(payment *models.Payment) int {
 		now.Year(), time.Month(needMonth), payment.DueDate.Day(), 0, 0, 0, 0, time.Local,
 	)
 
-	return nextDueDate.AddDate(now.Year(), int(now.Month()), now.Day()).Day()
+	timeDiffHours := nextDueDate.Sub(now).Hours()
+
+	return int(timeDiffHours/24) + lo.Ternary(int(timeDiffHours)%24 == 0, 0, 1)
 }

@@ -36,7 +36,7 @@ func (i *Implementation) CreatePayment(resp http.ResponseWriter, req *http.Reque
 	dueDate, err := time.Parse(time.DateOnly, reqBody.DueDate)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("time.Parse err: %v", err), http.StatusInternalServerError)
-
+		return
 	}
 
 	user := models.Payment{
@@ -50,6 +50,7 @@ func (i *Implementation) CreatePayment(resp http.ResponseWriter, req *http.Reque
 	createdPayment, err := i.paymentsTable.Create(req.Context(), user)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("usersTable.Create err: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	respBytes, err := json.Marshal(

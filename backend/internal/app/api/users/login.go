@@ -46,12 +46,11 @@ func (i *Implementation) Login(resp http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp.Header().Set("Content-Type", "application/json")
-	if _, err = resp.Write(respBytes); err != nil {
-		slog.Error(fmt.Sprintf("PaymentsList.resp.Write err: %v", err))
-	}
-
 	if !successLogin {
+		resp.Header().Set("Content-Type", "application/json")
+		if _, err = resp.Write(respBytes); err != nil {
+			slog.Error(fmt.Sprintf("PaymentsList.resp.Write err: %v", err))
+		}
 		return
 	}
 
@@ -70,4 +69,9 @@ func (i *Implementation) Login(resp http.ResponseWriter, req *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 	}
 	http.SetCookie(resp, authCookie)
+
+	resp.Header().Set("Content-Type", "application/json")
+	if _, err = resp.Write(respBytes); err != nil {
+		slog.Error(fmt.Sprintf("PaymentsList.resp.Write err: %v", err))
+	}
 }

@@ -86,8 +86,9 @@ func (s *usersTable) GetByLogin(ctx context.Context, login string) (*models.User
 func (s *usersTable) UpdateMonthlyIncome(ctx context.Context, login string, monthlyIncome int) (*models.User, error) {
 	statement, args, err := s.psql.Builder.
 		Update(s.table).
-		Set("monthly_income = ?", monthlyIncome).
+		Set("monthly_income", monthlyIncome).
 		Where("login = ?", login).
+		Suffix(returningAllColumns(new(models.User))).
 		ToSql()
 	if err != nil {
 		return nil, fmt.Errorf("GetByLogin.s.psql.Builder err: %w", err)
