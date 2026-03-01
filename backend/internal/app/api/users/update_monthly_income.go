@@ -31,13 +31,13 @@ func (i *Implementation) UpdateMonthlyIncome(resp http.ResponseWriter, req *http
 		return
 	}
 
-	_, err = i.usersTable.UpdateMonthlyIncome(req.Context(), authCookie.Login, reqBody.Income)
+	updatedUser, err := i.usersTable.UpdateMonthlyIncome(req.Context(), authCookie.Login, reqBody.Income)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("usersTable.UpdateMonthlyIncome err: %v", err), http.StatusInternalServerError)
 		return
 	}
 
-	respBytes, err := json.Marshal(models.UpdateMonthlyIncomeResponse{Success: true})
+	respBytes, err := json.Marshal(models.UpdateMonthlyIncomeResponse{MonthlyIncome: updatedUser.MonthlyIncome})
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("UpdateMonthlyIncome.json.Marshal err: %v", err), http.StatusInternalServerError)
 		return

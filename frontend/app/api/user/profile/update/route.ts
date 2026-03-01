@@ -1,0 +1,2 @@
+export { PUT } from "../route"
+

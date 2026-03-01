@@ -95,3 +95,20 @@ func validateJWT(tokenString string) (*Claims, error) {
 
 	return claims, nil
 }
+
+func DefaultAuthCookie(token string) *http.Cookie {
+	secure := false
+	if os.Getenv("SECURE_COOKIE") == "true" {
+		secure = true
+	}
+
+	return &http.Cookie{
+		Name:     "auth_token",
+		Value:    token,
+		Path:     "/",
+		Expires:  time.Now().Add(24 * time.Hour),
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+	}
+}

@@ -17,6 +17,7 @@ func Ping(w http.ResponseWriter, _ *http.Request) {
 		slog.Error(errText)
 
 		http.Error(w, errText, http.StatusInternalServerError)
+		return
 	}
 
 	if _, err = w.Write(respBytes); err != nil {

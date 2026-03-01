@@ -19,6 +19,7 @@ func (i *Implementation) FetchProfile(resp http.ResponseWriter, req *http.Reques
 	userProfile, err := i.usersTable.GetByLogin(req.Context(), authCookie.Login)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("usersTable.UpdateMonthlyIncome err: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	respBytes, err := json.Marshal(models.FetchProfileResponse{MonthlyIncome: userProfile.MonthlyIncome})

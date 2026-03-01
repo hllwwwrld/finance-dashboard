@@ -6,19 +6,19 @@ const (
 	PingEndpoint = "/api/ping"
 
 	// UserRegisterEndpoint ...
-	UserRegisterEndpoint = "/api/user/register"
+	UserRegisterEndpoint = "/user/register"
 	// UserLoginEndpoint ...
-	UserLoginEndpoint = "/api/user/login"
+	UserLoginEndpoint = "/user/login"
 	// UserFetchProfileEndpoint ...
-	UserFetchProfileEndpoint = "/api/user/profile/fetch"
+	UserFetchProfileEndpoint = "/user/profile/fetch"
 	// UserProfileUpdateEndpoint ...
-	UserProfileUpdateEndpoint = "/api/user/profile/update"
+	UserProfileUpdateEndpoint = "/user/profile/update"
 	// UserLogoutEndpoint ...
-	UserLogoutEndpoint = "/api/user/logout"
+	UserLogoutEndpoint = "/user/logout"
 
 	// PaymentsListEndpoint ...
-	PaymentsListEndpoint = "/api/payments/list"
+	PaymentsListEndpoint = "/payments/list"
 	// PaymentsCreate ...
-	PaymentsCreate = "/api/payments/create"
+	PaymentsCreate = "/payments/create"
 	PaymentsDelete = "/api/payments/delete"
 )

@@ -6,7 +6,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"time"
 
 	"github.com/finance-dashboard/backend/internal/pkg/middlewares"
 	"github.com/finance-dashboard/backend/internal/pkg/models"
@@ -29,6 +28,7 @@ func (i *Implementation) Login(resp http.ResponseWriter, req *http.Request) {
 	}
 
 	user, err := i.usersTable.GetByLogin(req.Context(), reqBody.Login)
+	// todo научиться ловить ошибку, что пользователь не найден и возвращать 404
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("usersTable.Create err: %v", err), http.StatusInternalServerError)
 		return
@@ -42,7 +42,7 @@ func (i *Implementation) Login(resp http.ResponseWriter, req *http.Request) {
 
 	respBytes, err := json.Marshal(models.RegisterUserResponse{Success: successLogin})
 	if err != nil {
-		http.Error(resp, fmt.Sprintf("PaymentsList.json.Marshal err: %v", err), http.StatusInternalServerError)
+		http.Error(resp, fmt.Sprintf("PaymentsList.json.Marshal err: %v", err), http.StatusUnauthorized)
 		return
 	}
 
@@ -59,16 +59,7 @@ func (i *Implementation) Login(resp http.ResponseWriter, req *http.Request) {
 		slog.Error(fmt.Sprintf("Login.middlewares.GenerateJWT err: %v", err))
 	}
 
-	authCookie := &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
-		Path:     "/",
-		Expires:  time.Now().Add(24 * time.Hour),
-		HttpOnly: true,
-		Secure:   false,
-		SameSite: http.SameSiteLaxMode,
-	}
-	http.SetCookie(resp, authCookie)
+	http.SetCookie(resp, middlewares.DefaultAuthCookie(token))
 
 	resp.Header().Set("Content-Type", "application/json")
 	if _, err = resp.Write(respBytes); err != nil {

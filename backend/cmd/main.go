@@ -35,7 +35,7 @@ func main() {
 			config.UserLoginEndpoint:         usersService.Login,
 			config.UserFetchProfileEndpoint:  middlewares.Auth(usersService.FetchProfile),
 			config.UserProfileUpdateEndpoint: middlewares.Auth(usersService.UpdateMonthlyIncome),
-			// todo config.UserLogoutEndpoint: usersService.Logout
+			config.UserLogoutEndpoint:        usersService.Logout,
 
 			// хендлеры для payments
 			config.PaymentsCreate:       middlewares.Auth(paymentsService.CreatePayment),

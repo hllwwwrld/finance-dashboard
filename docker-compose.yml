@@ -20,7 +20,7 @@ services:
 
   migrations:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: finance-dashboard-migrations
     environment:
@@ -55,7 +55,7 @@ services:
 
   backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     container_name: finance-dashboard-backend
     ports:
@@ -75,6 +75,22 @@ services:
     networks:
       - dashboard-network
     restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:3000
+    container_name: finance-dashboard-frontend
+    ports:
+      - "3001:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+    depends_on:
+      - backend
+    networks:
+      - dashboard-network
 
 volumes:
   postgres_data:

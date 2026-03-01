@@ -1,3 +1,5 @@
+include: 
+
 MIGRATIONS_FOLDER:="./db/migrations"
 DB_DSN:="postgres://postgres:postgres@localhost:5432/dashboard?sslmode=disable"
 
@@ -19,18 +21,19 @@ lint:
 format:
 	goimports -w .
 
+# Docker команды используют корневой docker-compose.yml
 build:
-	docker-compose build --no-cache
+	docker-compose -f ../docker-compose.yml build --no-cache backend
 
 .PHONY: up
 up:
-	docker-compose up -d
+	docker-compose -f ../docker-compose.yml up -d
 
 build-up: build up
 
 .PHONY: down
 down:
-	docker-compose down
+	docker-compose -f ../docker-compose.yml down
 
 # для локальной разработки
 # с удалением volumes в контейнера постегреса, могут потеряться данные
@@ -38,7 +41,7 @@ l-up: up
 	goose -dir $(MIGRATIONS_FOLDER) postgres $(DB_DSN) up
 
 l-down:
-	docker-compose down -v --remove-orphans
+	docker-compose -f ../docker-compose.yml down -v --remove-orphans
 
 .PHONY: restart
 restart: down up

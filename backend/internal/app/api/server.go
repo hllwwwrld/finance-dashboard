@@ -42,7 +42,7 @@ func New(handlers HandlersMap) (*Implementation, error) {
 
 func (i *Implementation) RegisterHandlers(mux *http.ServeMux, handlers HandlersMap) {
 	for path, handler := range handlers {
-		mux.Handle(path, middlewares.Log(handler))
+		mux.Handle(path, middlewares.Log(middlewares.Cors(handler)))
 	}
 }
 

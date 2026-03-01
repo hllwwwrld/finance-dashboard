@@ -32,6 +32,7 @@ func (i *Implementation) Register(resp http.ResponseWriter, req *http.Request) {
 	)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("bcrypt.GenerateFromPassword err: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	user := models.User{
