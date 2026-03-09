@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/finance-dashboard/backend/internal/app/api/users"
+	"github.com/finance-dashboard/backend/internal/pkg/models"
 )
 
 func (i *Implementation) PaymentsList(resp http.ResponseWriter, req *http.Request) {
@@ -22,11 +23,18 @@ func (i *Implementation) PaymentsList(resp http.ResponseWriter, req *http.Reques
 		return
 	}
 
+	totalExpenses := 0
 	for _, payment := range userPayments {
 		payment.DaysUntil = calculateDaysUntil(payment)
+		totalExpenses += payment.Amount
 	}
 
-	respBytes, err := json.Marshal(userPayments)
+	respModel := models.PaymentsListResponse{
+		Payments:      userPayments,
+		TotalExpenses: totalExpenses,
+	}
+
+	respBytes, err := json.Marshal(respModel)
 	if err != nil {
 		http.Error(resp, fmt.Sprintf("PaymentsList.json.Marshal err: %v", err), http.StatusInternalServerError)
 		return

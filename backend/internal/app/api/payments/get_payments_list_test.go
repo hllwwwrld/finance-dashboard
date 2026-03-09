@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -13,6 +12,7 @@ import (
 	"github.com/finance-dashboard/backend/internal/config"
 	"github.com/finance-dashboard/backend/internal/pkg/middlewares"
 	"github.com/finance-dashboard/backend/internal/pkg/models"
+	"github.com/finance-dashboard/backend/internal/pkg/test_helpers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -21,53 +21,15 @@ func Test_GetPaymentList(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Создание юзера
-	registerReqBody := &models.RegisterUserRequest{
-		Login:    fmt.Sprintf("Test_GetPaymentList_%d", time.Now().UnixNano()),
-		Password: "testpassword",
-	}
-	registerJSONBody, err := json.Marshal(registerReqBody)
-	require.NoError(t, err)
-	require.NotEmpty(t, registerJSONBody)
-
-	registerReq, err := http.NewRequestWithContext(
-		ctx, http.MethodPost, config.UserRegisterEndpoint, bytes.NewBuffer(registerJSONBody),
-	)
-	require.NoError(t, err)
-
-	registerResp := httptest.NewRecorder()
-	usersService.Register(registerResp, registerReq)
-	require.Equal(t, http.StatusOK, registerResp.Code)
-
-	// Логин
-	loginResp := httptest.NewRecorder()
-	loginBody := &models.LoginUserRequest{
-		Login:    registerReqBody.Login,
-		Password: registerReqBody.Password,
-	}
-	loginBytes, err := json.Marshal(loginBody)
-	require.NoError(t, err)
-	require.NotEmpty(t, loginBytes)
-
-	loginReq, err := http.NewRequestWithContext(
-		ctx, http.MethodPost, config.UserLoginEndpoint, bytes.NewBuffer(loginBytes),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, loginReq)
-
-	usersService.Login(loginResp, loginReq)
-	require.Equal(t, http.StatusOK, loginResp.Code)
-	require.Len(t, loginResp.Result().Cookies(), 1)
-
-	authCookie := loginResp.Result().Cookies()[0]
+	_, _, authCookie := test_helpers.RegisterAndLoginUser(t, ctx, usersService)
 
 	// Создание платежа
-	dueDate := time.Now().Add(time.Hour * 48).Format(time.DateOnly)
+	dueDay := time.Now().Add(time.Hour * 48).Day()
 	createResp := httptest.NewRecorder()
 	createBody := &models.CreatePaymentRequest{
 		Name:     "Домашний интернет",
 		Amount:   900,
-		DueDate:  dueDate,
+		DueDay:   dueDay,
 		Category: "internet",
 		Color:    "#ff0000",
 	}
@@ -113,13 +75,15 @@ func Test_GetPaymentList(t *testing.T) {
 	listWithMiddleware(listResp, listReq)
 	require.Equal(t, http.StatusOK, listResp.Code)
 
-	var listRespBody []*models.Payment
+	var listRespBody models.PaymentsListResponse
 	err = json.Unmarshal(listResp.Body.Bytes(), &listRespBody)
 	require.NoError(t, err)
 	require.NotEmpty(t, listRespBody)
 
+	require.Equal(t, 900, listRespBody.TotalExpenses)
+
 	var found bool
-	for _, payment := range listRespBody {
+	for _, payment := range listRespBody.Payments {
 		if payment.ID == createRespBody.ID {
 			found = true
 			require.Equal(t, createBody.Name, payment.Name)

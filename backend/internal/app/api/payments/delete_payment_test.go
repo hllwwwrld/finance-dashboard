@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -16,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Test_CreatePayment(t *testing.T) {
+func Test_DeletePayment(t *testing.T) {
 	t.Parallel()
 
 	ctx := context.Background()
@@ -48,17 +49,11 @@ func Test_CreatePayment(t *testing.T) {
 	createWithMiddleware(createResp, createReq)
 	require.Equal(t, http.StatusOK, createResp.Code)
 
+	fmt.Println(createReq.Context().Value(middlewares.UserContextKey))
+
 	createRespBody := &models.CreatePaymentResponse{}
 	err = json.Unmarshal(createResp.Body.Bytes(), createRespBody)
 	require.NoError(t, err)
-
-	require.NotEmpty(t, createRespBody.ID)
-	require.NotEmpty(t, createRespBody.UserID)
-	require.Equal(t, createBody.Name, createRespBody.Name)
-	require.Equal(t, createBody.Amount, createRespBody.Amount)
-	require.Equal(t, createBody.Category, createRespBody.Category)
-	require.Equal(t, createBody.Color, createRespBody.Color)
-	require.Equal(t, 2, createRespBody.DaysUntil)
 
 	// Проверка, что платеж есть в таблице
 	user, err := usersTable.GetByLogin(ctx, login)
@@ -71,47 +66,34 @@ func Test_CreatePayment(t *testing.T) {
 
 	require.Len(t, userPayments, 1)
 
-	payment := userPayments[0]
-	require.NotEmpty(t, payment.ID)
-	require.Equal(t, user.ID, payment.UserID)
-	require.Equal(t, payment.Name, createBody.Name)
-	require.Equal(t, createBody.Amount, payment.Amount)
-	require.Equal(t, createBody.DueDay, payment.DueDay)
-	require.Equal(t, createBody.Category, payment.Category)
-	require.Equal(t, createBody.Color, payment.Color)
-	require.False(t, payment.CreatedAt.IsZero())
-	require.False(t, payment.UpdatedAt.IsZero())
-	require.Equal(t, payment.CreatedAt, payment.CreatedAt)
-}
-
-// Test_CreatePayment_Unauthorized проверяет, что без авторизации
-// создание платежа возвращает 401
-func Test_CreatePayment_Unauthorized(t *testing.T) {
-	t.Parallel()
-
-	ctx := context.Background()
-
-	createResp := httptest.NewRecorder()
-	createBody := &models.CreatePaymentRequest{
-		Name:     "Unauthorized payment",
-		Amount:   100,
-		DueDay:   10,
-		Category: "test",
-		Color:    "#000000",
+	// Удаление платежа
+	deleteResp := httptest.NewRecorder()
+	deleteBody := &models.DeletePaymentRequest{
+		ID: userPayments[0].ID,
 	}
-	createBytes, err := json.Marshal(createBody)
+	deleteBytes, err := json.Marshal(deleteBody)
 	require.NoError(t, err)
-	require.NotEmpty(t, createBytes)
+	require.NotEmpty(t, deleteBytes)
 
-	createReq, err := http.NewRequestWithContext(
-		ctx, http.MethodPost, config.PaymentsCreate, bytes.NewBuffer(createBytes),
+	deleteReq, err := http.NewRequestWithContext(
+		ctx, http.MethodPost, config.PaymentsDelete, bytes.NewBuffer(deleteBytes),
 	)
 	require.NoError(t, err)
-	require.NotNil(t, createReq)
+	require.NotNil(t, deleteReq)
 
-	// без куки авторизации
-	createWithMiddleware := middlewares.Auth(paymentsService.CreatePayment)
-	createWithMiddleware(createResp, createReq)
+	deleteReq.AddCookie(authCookie)
 
-	require.Equal(t, http.StatusUnauthorized, createResp.Code)
+	deleteWithMiddleware := middlewares.Auth(paymentsService.DeletePayment)
+	deleteWithMiddleware(deleteResp, deleteReq)
+	require.Equal(t, http.StatusOK, deleteResp.Code)
+
+	deleteRespBody := &models.DeletePaymentResponse{}
+	err = json.Unmarshal(deleteResp.Body.Bytes(), deleteRespBody)
+	require.NoError(t, err)
+
+	require.True(t, deleteRespBody.Success)
+
+	userPayments, err = paymentsTable.GetByUserID(ctx, user.ID)
+	require.NoError(t, err)
+	require.Len(t, userPayments, 0)
 }

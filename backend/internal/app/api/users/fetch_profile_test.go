@@ -1,7 +1,6 @@
 package users_test
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 	"github.com/finance-dashboard/backend/internal/config"
 	"github.com/finance-dashboard/backend/internal/pkg/middlewares"
 	"github.com/finance-dashboard/backend/internal/pkg/models"
+	"github.com/finance-dashboard/backend/internal/pkg/test_helpers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -20,50 +20,15 @@ func Test_FetchProfile(t *testing.T) {
 
 	ctx := context.Background()
 
-	// Создание юзера
-	registerReqBody := &models.RegisterUserRequest{
-		Login:    "Test_FetchProfile",
-		Password: "testpassword",
-	}
-	registerJsonBody, err := json.Marshal(registerReqBody)
-	require.NoError(t, err)
-
-	registerReq, err := http.NewRequestWithContext(
-		ctx, "POST", config.UserRegisterEndpoint, bytes.NewBuffer(registerJsonBody),
-	)
-	require.NoError(t, err)
-
-	registerResp := httptest.NewRecorder()
-	usersService.Register(registerResp, registerReq)
-	require.Equal(t, registerResp.Code, http.StatusOK)
-
-	loginResp := httptest.NewRecorder()
-
-	loginBody := &models.LoginUserRequest{
-		Login:    "Test_FetchProfile",
-		Password: "testpassword",
-	}
-	loginBytes, err := json.Marshal(loginBody)
-	require.NoError(t, err)
-	require.NotEmpty(t, loginBody)
-
-	loginReq, err := http.NewRequestWithContext(
-		ctx, "POST", config.UserRegisterEndpoint, bytes.NewBuffer(loginBytes),
-	)
-	require.NoError(t, err)
-	require.NotNil(t, loginReq)
-	usersService.Login(loginResp, loginReq)
-	require.Equal(t, loginResp.Code, http.StatusOK)
-
 	fetchProfileResp := httptest.NewRecorder()
 	fetchProfileReq, err := http.NewRequestWithContext(
-		ctx, "POST", config.UserRegisterEndpoint, nil,
+		ctx, "POST", config.UserFetchProfileEndpoint, nil,
 	)
 	require.NoError(t, err)
 	require.NotNil(t, fetchProfileReq)
 
-	require.Len(t, loginResp.Result().Cookies(), 1)
-	fetchProfileReq.AddCookie(loginResp.Result().Cookies()[0])
+	login, _, authCookie := test_helpers.RegisterAndLoginUser(t, ctx, usersService)
+	fetchProfileReq.AddCookie(authCookie)
 
 	fetchProfileWithMiddleware := middlewares.Auth(usersService.FetchProfile)
 	fetchProfileWithMiddleware(fetchProfileResp, fetchProfileReq)
@@ -75,7 +40,7 @@ func Test_FetchProfile(t *testing.T) {
 
 	require.Equal(t, 0, fetchProfileRespBody.MonthlyIncome)
 
-	user, err := usersTable.GetByLogin(ctx, loginBody.Login)
+	user, err := usersTable.GetByLogin(ctx, login)
 	require.NoError(t, err)
 	require.NotNil(t, user)
 }

@@ -40,7 +40,7 @@ func main() {
 			// хендлеры для payments
 			config.PaymentsCreate:       middlewares.Auth(paymentsService.CreatePayment),
 			config.PaymentsListEndpoint: middlewares.Auth(paymentsService.PaymentsList),
-			// todo config.PaymentsDelete: paymentsService.Delete
+			config.PaymentsDelete:       middlewares.Auth(paymentsService.DeletePayment),
 		},
 	)
 	if err != nil {

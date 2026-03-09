@@ -21,12 +21,12 @@ func calculateDaysUntil(payment *models.Payment) int {
 	needMonth := int(now.Month())
 
 	// если в этом месяца уже наступила дата платежа, то считаем, что след платеж в будущем месяце
-	if payment.DueDate.Day() < time.Now().Day() {
+	if payment.DueDay < time.Now().Day() {
 		needMonth++
 	}
 
 	nextDueDate := time.Date(
-		now.Year(), time.Month(needMonth), payment.DueDate.Day(), 0, 0, 0, 0, time.Local,
+		now.Year(), time.Month(needMonth), payment.DueDay, 0, 0, 0, 0, time.Local,
 	)
 
 	timeDiffHours := nextDueDate.Sub(now).Hours()

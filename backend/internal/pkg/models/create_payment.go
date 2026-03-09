@@ -3,10 +3,9 @@ package models
 import "time"
 
 type CreatePaymentRequest struct {
-	Name   string `json:"name"`
-	Amount int    `json:"amount"`
-	// todo dueDate должен быть int, но в api он string, заменить тут на int
-	DueDate  string `json:"dueDate"`
+	Name     string `json:"name"`
+	Amount   int    `json:"amount"`
+	DueDay   int    `json:"dueDay"`
 	Category string `json:"category"`
 	Color    string `json:"color"`
 }
@@ -16,7 +15,7 @@ type CreatePaymentResponse struct {
 	UserID    string    `json:"userId"`
 	Name      string    `json:"name"`
 	Amount    int       `json:"amount"`
-	DueDate   string    `json:"dueDate"`
+	DueDay    int       `json:"dueDate"`
 	Category  string    `json:"category"`
 	Color     string    `json:"color"`
 	DaysUntil int       `json:"daysUntil"`

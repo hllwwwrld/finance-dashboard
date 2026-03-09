@@ -20,5 +20,6 @@ const (
 	PaymentsListEndpoint = "/payments/list"
 	// PaymentsCreate ...
 	PaymentsCreate = "/payments/create"
+	// PaymentsDelete ...
 	PaymentsDelete = "/api/payments/delete"
 )

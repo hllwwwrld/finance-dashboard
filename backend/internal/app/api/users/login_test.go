@@ -10,6 +10,7 @@ import (
 
 	"github.com/finance-dashboard/backend/internal/config"
 	"github.com/finance-dashboard/backend/internal/pkg/models"
+	"github.com/finance-dashboard/backend/internal/pkg/test_helpers"
 	"github.com/stretchr/testify/require"
 )
 
@@ -19,29 +20,15 @@ func Test_Login(t *testing.T) {
 	ctx := context.Background()
 
 	// Создание юзера
-	registerReqBody := &models.RegisterUserRequest{
-		Login:    "testuser_login",
-		Password: "testpassword",
-	}
-	registerJsonBody, err := json.Marshal(registerReqBody)
-	require.NoError(t, err)
-
-	registerReq, err := http.NewRequestWithContext(
-		ctx, "POST", config.UserRegisterEndpoint, bytes.NewBuffer(registerJsonBody),
-	)
-	require.NoError(t, err)
-
-	registerResp := httptest.NewRecorder()
-	usersService.Register(registerResp, registerReq)
-	require.Equal(t, registerResp.Code, http.StatusOK)
+	login, password := test_helpers.RegisterUser(t, ctx, usersService)
 
 	// Успешный логин
 	t.Run("successful login", func(t *testing.T) {
 		t.Parallel()
 
 		reqBody := &models.LoginUserRequest{
-			Login:    "testuser_login",
-			Password: "testpassword",
+			Login:    login,
+			Password: password,
 		}
 		jsonBody, err := json.Marshal(reqBody)
 		require.NoError(t, err)
@@ -56,7 +43,7 @@ func Test_Login(t *testing.T) {
 		usersService.Login(resp, loginReq)
 		require.Equal(t, resp.Code, http.StatusOK)
 
-		respBody := &models.RegisterUserResponse{}
+		respBody := &models.LoginUserResponse{}
 		err = json.Unmarshal(resp.Body.Bytes(), respBody)
 		require.NoError(t, err)
 		require.Equal(t, respBody.Success, true)
@@ -64,7 +51,7 @@ func Test_Login(t *testing.T) {
 		cookies := resp.Result().Cookies()
 		require.NotEmpty(t, cookies)
 
-		authCookie := findCookie(cookies, "auth_token")
+		authCookie := test_helpers.FindCookie(cookies, "auth_token")
 		require.NotNil(t, authCookie)
 		require.NotEmpty(t, authCookie.Value)
 
@@ -78,7 +65,7 @@ func Test_Login(t *testing.T) {
 		t.Parallel()
 
 		reqBody := &models.LoginUserRequest{
-			Login:    "testuser_login",
+			Login:    login,
 			Password: "wrongpassword",
 		}
 		jsonBody, err := json.Marshal(reqBody)
@@ -94,14 +81,14 @@ func Test_Login(t *testing.T) {
 		usersService.Login(resp, loginReq)
 		require.Equal(t, resp.Code, http.StatusOK)
 
-		respBody := &models.RegisterUserResponse{}
+		respBody := &models.LoginUserResponse{}
 		err = json.Unmarshal(resp.Body.Bytes(), respBody)
 		require.NoError(t, err)
 		require.Equal(t, respBody.Success, false)
 
 		// Проверяем, что cookie не установлен при неуспешном логине
 		cookies := resp.Result().Cookies()
-		authCookie := findCookie(cookies, "auth_token")
+		authCookie := test_helpers.FindCookie(cookies, "auth_token")
 		require.Nil(t, authCookie)
 	})
 
@@ -129,14 +116,4 @@ func Test_Login(t *testing.T) {
 		// При несуществующем пользователе хендлер возвращает InternalServerError
 		require.Equal(t, resp.Code, http.StatusInternalServerError)
 	})
-}
-
-// findCookie поиск куки в слайсе
-func findCookie(cookies []*http.Cookie, name string) *http.Cookie {
-	for _, cookie := range cookies {
-		if cookie.Name == name {
-			return cookie
-		}
-	}
-	return nil
 }
