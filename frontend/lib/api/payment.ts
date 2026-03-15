@@ -6,7 +6,7 @@ export interface Payment {
     id: string
     name: string
     amount: number
-    dueDate: number // день месяца
+    dueDay: number // день месяца
     daysUntil: number // дни до платежа
     category: string
     color: string
@@ -15,6 +15,10 @@ export interface Payment {
 export interface FetchPaymentsResponse {
     payments: Payment[]
     totalExpenses: number
+}
+
+export interface DeletePaymentRequest {
+    id: string
 }
 
 // Получить список всех платежей
@@ -70,14 +74,15 @@ export async function createPayment(payment: Omit<Payment, 'id' | 'daysUntil'>):
 }
 
 // Удалить платеж
-export async function deletePayment(id: string): Promise<void> {
+export async function deletePayment(request: DeletePaymentRequest): Promise<void> {
     try {
-        const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
-            method: 'DELETE',
+        const response = await fetch(`${API_BASE_URL}/api/payments/delete`, {
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
             credentials: 'include',
+            body: JSON.stringify(request),
         })
 
         handleApiResponse(response)

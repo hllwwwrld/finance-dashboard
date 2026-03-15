@@ -8,7 +8,7 @@ interface Payment {
     id: string
     name: string
     amount: number
-    dueDate: number
+    dueDay: number
     category: string
     color: string
 }

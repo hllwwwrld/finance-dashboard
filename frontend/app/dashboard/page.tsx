@@ -6,7 +6,7 @@ import {Trash2, ChevronLeft, ChevronRight, Clock, Loader2, RefreshCw, LogOut} fr
 import {Button} from "@/components/ui/button"
 import Dashboard from "@/components/dashboard"
 import PaymentForm from "@/components/payment-form"
-import {fetchPayments, createPayment, deletePayment, type Payment} from "@/lib/api/payment"
+import {fetchPayments, createPayment, deletePayment, type Payment, DeletePaymentRequest} from "@/lib/api/payment"
 import {fetchUserProfile, updateMonthlyIncome, UpdateMonthlyIncomeRequest, logout} from "@/lib/api/user"
 
 export default function DashboardPage() {
@@ -74,10 +74,10 @@ export default function DashboardPage() {
         }
     }
 
-    const handleDeletePayment = async (id: string) => {
+    const handleDeletePayment = async (request: DeletePaymentRequest) => {
         try {
             setError(null)
-            await deletePayment(id)
+            await deletePayment(request)
             const data = await fetchPayments() // получаем свежие данные
             setPayments(data.payments)
             setTotalExpenses(data.totalExpenses)
@@ -232,7 +232,7 @@ export default function DashboardPage() {
                                     </p>
                                 ) : (
                                     payments
-                                        .sort((a, b) => a.dueDate - b.dueDate)
+                                        .sort((a, b) => a.dueDay - b.dueDay)
                                         .map((payment) => (
                                             <div
                                                 key={payment.id}
@@ -248,7 +248,7 @@ export default function DashboardPage() {
                                                             {payment.name}
                                                         </p>
                                                         <p className="text-xs text-muted-foreground">
-                                                            {payment.dueDate} число
+                                                            {payment.dueDay} число
                                                         </p>
                                                     </div>
                                                 </div>
@@ -260,7 +260,7 @@ export default function DashboardPage() {
                                                         <Clock className="h-4 w-4 text-orange-500 flex-shrink-0"/>
                                                     )}
                                                     <Button
-                                                        onClick={() => handleDeletePayment(payment.id)}
+                                                        onClick={() => handleDeletePayment({id: payment.id})}
                                                         size="icon"
                                                         variant="ghost"
                                                         className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0"

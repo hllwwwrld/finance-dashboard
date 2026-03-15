@@ -92,6 +92,8 @@ dev-all: dev-db
 
 
 
+
+# Это надо разобрать, по хз хз чо сэтим делать, как-будто нужно только l-down
 .PHONY: up
 up:
 	docker-compose up -d
@@ -114,5 +116,5 @@ l-up: up
 l-down:
 	docker-compose down -v --remove-orphans
 
-.PHONY: restart
-restart: down up
+cleanup:
+	docker system prune -a --volumes

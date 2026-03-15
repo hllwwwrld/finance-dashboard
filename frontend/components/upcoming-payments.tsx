@@ -7,7 +7,8 @@ interface Payment {
     id: string
     name: string
     amount: number
-    dueDate: number
+    dueDay: number // день месяца
+    daysUntil: number // дни до платежа
     category: string
     color: string
 }
@@ -21,15 +22,13 @@ export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
     const currentDay = today.getDate()
 
     const upcoming = payments
-        .map((p) => ({
-            ...p,
-            daysUntil: p.dueDate >= currentDay ? p.dueDate - currentDay : p.dueDate + (31 - currentDay),
-        }))
+        // .map((p) => ({
+        //     ...p,
+        //     daysUntil: p.dueDate >= currentDay ? p.dueDate - currentDay : p.dueDate + (31 - currentDay),
+        // })) убрал, беру теперь с бека, но не тестил
+        .filter((a) => a.daysUntil >= 0)
         .sort((a, b) => a.daysUntil - b.daysUntil)
         .slice(0, 5)
-
-    // todo УДАЛИТЬ то, что выше, кол-вод ней до платежа должно прихдить с бека
-    // при расчете должны учитывать весокосные года, кол-во дней в месяце и тд
 
     return (
         <Card className="bg-card p-6 shadow-none border border-border/50">

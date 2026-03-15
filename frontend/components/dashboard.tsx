@@ -11,7 +11,8 @@ interface Payment {
     id: string
     name: string
     amount: number
-    dueDate: number
+    dueDay: number // день месяца
+    daysUntil: number // дни до платежа
     category: string
     color: string
 }

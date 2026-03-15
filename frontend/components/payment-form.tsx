@@ -10,7 +10,7 @@ interface PaymentFormProps {
     onSubmit: (payment: {
         name: string
         amount: number
-        dueDate: number
+        dueDay: number
         category: string
         color: string
     }) => void
@@ -35,7 +35,7 @@ export default function PaymentForm({ onSubmit, onCancel }: PaymentFormProps) {
             onSubmit({
                 name: form.name,
                 amount: Number.parseFloat(form.amount),
-                dueDate: Number.parseInt(form.dueDate),
+                dueDay: Number.parseInt(form.dueDate),
                 category: form.category,
                 color: form.color,
             })
