@@ -27,7 +27,7 @@ format:
 # ============================================================================
 # Использовать после изменения зависимостей или Dockerfile
 build-clean:
-	docker-compose build --no-cache backend frontend migrations
+	docker-compose build --no-cache backend frontend migrations nginx
 
 build-backend-clean:
 	docker-compose build --no-cache backend

@@ -32,10 +32,10 @@ services:
       - DB_SSLMODE=${DB_SSLMODE:-disable}
     command: >
       sh -c "
-        if [ \"$${DB_SSLMODE}\" = \"disable\" ]; then
-          echo 'Skipping migrations (DB_SSLMODE=disable - local development mode)' &&
-          exit 0
-        fi &&
+        # if [ \"$${DB_SSLMODE}\" = \"disable\" ]; then
+        #   echo 'Skipping migrations (DB_SSLMODE=disable - local development mode)' &&
+        #   exit 0
+        # fi &&
         echo 'Waiting for database to be ready...' &&
         until goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" status > /dev/null 2>&1; do
           echo 'Database is unavailable - sleeping...' &&
@@ -58,8 +58,8 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: finance-dashboard-backend
-    ports:
-      - "${BACKEND_PORT:-3000}:3000"
+    # ports:
+    #   - "${BACKEND_PORT:-3000}:3000"
     environment:
       - DB_HOST=${DB_HOST:-postgres}
       - DB_PORT=${DB_PORT:-5432}
@@ -81,13 +81,26 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:3000
+        NEXT_PUBLIC_API_URL: /api
     container_name: finance-dashboard-frontend
     ports:
       - "3001:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXT_PUBLIC_API_URL=/api
     depends_on:
+      - backend
+    networks:
+      - dashboard-network
+
+  nginx:
+    build: ./nginx   # или используйте готовый образ с монтированием конфига
+    container_name: finance-dashboard-nginx
+    ports:
+      - "${NGINX_PORT:-8080}:80"   # публикуем порт наружу (можно оставить 80/443 при необходимости)
+    volumes:
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro   # монтируем файл с паролями
+    depends_on:
+      - frontend
       - backend
     networks:
       - dashboard-network
