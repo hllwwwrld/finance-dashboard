@@ -1,0 +1,58 @@
+include include.mk
+
+.DEFAULT_GOAL := help-local
+
+MIGRATIONS_FOLDER := ./backend/db/migrations
+DB_DSN            := postgres://postgres:postgres@localhost:5432/dashboard?sslmode=disable
+
+.PHONY: help-local bin-deps deps lint format dev-db dev-backend dev-frontend dev-frontend-lan dev-all
+
+help-local:
+	@echo "make dev-db | dev-backend | dev-frontend | dev-frontend-lan | dev-all"
+	@echo "make lint | format | deps | bin-deps"
+
+# ====================
+# Команды для бека
+# ====================
+
+bin-deps:
+	GOBIN=$(LOCAL_BIN) go install golang.org/x/tools/cmd/goimports@latest
+	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	GOBIN=$(LOCAL_BIN) go install honnef.co/go/tools/cmd/staticcheck@latest
+
+deps:
+	go install golang.org/x/tools/cmd/goimports@latest
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+	go install honnef.co/go/tools/cmd/staticcheck@latest
+
+lint:
+	golangci-lint run
+	staticcheck ./backend/...
+
+format:
+	goimports -w ./backend/...
+
+# ====================
+# Поднятие сервиса
+# ====================
+
+dev-db:
+	docker-compose up -d postgres
+	@sleep 3
+	goose -dir $(MIGRATIONS_FOLDER) postgres $(DB_DSN) up
+
+dev-backend:
+	cd backend && go run cmd/main.go
+
+dev-frontend:
+	cd frontend && NEXT_PUBLIC_API_URL=http://localhost:3000 PORT=3001 pnpm dev
+
+dev-frontend-lan:
+	@test -n "$(LAN_IP)" || (echo "Укажите LAN_IP=192.168.x.x" && false)
+	cd frontend && NEXT_PUBLIC_API_URL=http://$(LAN_IP):3000 PORT=3001 pnpm dev:lan
+
+dev-all: dev-db
+	@trap 'kill 0' EXIT; \
+	cd backend && go run cmd/main.go & \
+	cd frontend && NEXT_PUBLIC_API_URL=http://localhost:3000 PORT=3001 pnpm dev & \
+	wait

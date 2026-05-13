@@ -76,7 +76,7 @@ export async function createPayment(payment: Omit<Payment, 'id' | 'daysUntil'>):
 // Удалить платеж
 export async function deletePayment(request: DeletePaymentRequest): Promise<void> {
     try {
-        const response = await fetch(`${API_BASE_URL}/api/payments/delete`, {
+        const response = await fetch(`${API_BASE_URL}/payments/delete`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

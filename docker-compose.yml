@@ -1,3 +1,8 @@
+# Полный стек: Postgres → миграции → backend → frontend → nginx.
+# Запуск: make -f Makefile.prod up → http://localhost:${NGINX_PORT:-8080} (basic-auth: make -f Makefile.prod nginx-htpasswd …).
+# Учётные данные БД: POSTGRES_* (те же значения используют backend и миграции).
+# Локальная отладка: make dev-db && make dev-backend && make dev-frontend (см. Makefile + Makefile.local).
+
 services:
   postgres:
     image: postgres:16-alpine
@@ -24,27 +29,19 @@ services:
       dockerfile: Dockerfile
     container_name: finance-dashboard-migrations
     environment:
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-${POSTGRES_USER:-postgres}}
-      - DB_PASSWORD=${DB_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}
-      - DB_NAME=${DB_NAME:-${POSTGRES_DB:-dashboard}}
-      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: ${POSTGRES_DB:-dashboard}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
     command: >
       sh -c "
-        # if [ \"$${DB_SSLMODE}\" = \"disable\" ]; then
-        #   echo 'Skipping migrations (DB_SSLMODE=disable - local development mode)' &&
-        #   exit 0
-        # fi &&
-        echo 'Waiting for database to be ready...' &&
+        echo 'Waiting for database...' &&
         until goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" status > /dev/null 2>&1; do
-          echo 'Database is unavailable - sleeping...' &&
           sleep 1
         done &&
-        echo 'Database is ready!' &&
-        echo 'Running database migrations...' &&
-        goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" up &&
-        echo 'Migrations completed successfully!'
+        goose -dir /app/db/migrations postgres \"postgres://$${DB_USER}:$${DB_PASSWORD}@$${DB_HOST}:$${DB_PORT}/$${DB_NAME}?sslmode=$${DB_SSLMODE}\" up
       "
     depends_on:
       postgres:
@@ -58,15 +55,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: finance-dashboard-backend
-    # ports:
-    #   - "${BACKEND_PORT:-3000}:3000"
     environment:
-      - DB_HOST=${DB_HOST:-postgres}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_USER=${DB_USER:-${POSTGRES_USER:-postgres}}
-      - DB_PASSWORD=${DB_PASSWORD:-${POSTGRES_PASSWORD:-postgres}}
-      - DB_NAME=${DB_NAME:-${POSTGRES_DB:-dashboard}}
-      - DB_SSLMODE=${DB_SSLMODE:-disable}
+      DB_HOST: ${DB_HOST:-postgres}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_USER: ${POSTGRES_USER:-postgres}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      DB_NAME: ${POSTGRES_DB:-dashboard}
+      DB_SSLMODE: ${DB_SSLMODE:-disable}
     depends_on:
       postgres:
         condition: service_healthy
@@ -83,22 +78,20 @@ services:
       args:
         NEXT_PUBLIC_API_URL: /api
     container_name: finance-dashboard-frontend
-    # ports:
-    #   - "3001:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=/api
+      NEXT_PUBLIC_API_URL: /api
     depends_on:
       - backend
     networks:
       - dashboard-network
 
   nginx:
-    build: ./nginx   # или используйте готовый образ с монтированием конфига
+    build: ./nginx
     container_name: finance-dashboard-nginx
     ports:
-      - "${NGINX_PORT:-8080}:80"   # публикуем порт наружу (можно оставить 80/443 при необходимости)
+      - "${NGINX_PORT:-8080}:80"
     volumes:
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro   # монтируем файл с паролями
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - frontend
       - backend
@@ -111,4 +104,3 @@ volumes:
 networks:
   dashboard-network:
     driver: bridge
-

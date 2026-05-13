@@ -1,133 +1,18 @@
-# ============================================================================
-# Конфигурация
-# ============================================================================
-MIGRATIONS_FOLDER:="./backend/db/migrations"
-DB_DSN:="postgres://postgres:postgres@localhost:5432/dashboard?sslmode=disable"
+.DEFAULT_GOAL := help
 
-bin-deps:
-	GOBIN=$(LOCAL_BIN) go install golang.org/x/tools/cmd/goimports@latest
-	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	GOBIN=$(LOCAL_BIN) go install honnef.co/go/tools/cmd/staticcheck@latest
+.PHONY: help
 
-deps:
-	go install golang.org/x/tools/cmd/goimports@latest
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install honnef.co/go/tools/cmd/staticcheck@latest
+help:
+	@echo "Локальная разработка (БД в Docker, Go и Next на машине):"
+	@echo "  make dev-db            Postgres + миграции"
+	@echo "  make dev-backend       API :3000"
+	@echo "  make dev-frontend      UI :3001 → http://localhost:3000"
+	@echo "  make dev-frontend-lan  UI в Wi‑Fi (LAN_IP из en0 или задайте вручную)"
+	@echo "  make dev-all           dev-db + backend + frontend в одном терминале"
+	@echo "  make lint / format / deps / bin-deps"
+	@echo ""
+	@echo "Сервер / интернет / полный Docker (см. docker-compose.yml):"
+	@echo "  make -f Makefile.prod help"
 
-
-lint:
-	golangci-lint run
-	staticcheck ./backend/...
-
-format:
-	goimports -w ./backend/...
-
-# ============================================================================
-# Пересборка докер образа (медленная, без кеша)
-# ============================================================================
-# Использовать после изменения зависимостей или Dockerfile
-build-clean:
-	docker-compose build --no-cache backend frontend migrations nginx
-
-build-backend-clean:
-	docker-compose build --no-cache backend
-
-build-frontend-clean:
-	docker-compose build --no-cache frontend
-
-
-
-# ============================================================================
-# Пересборка докер образа (быстрая, с кешем)
-# ============================================================================
-build-backend-fast:
-	docker-compose build backend
-
-build-frontend-fast:
-	docker-compose build frontend
-
-build-fast: build-backend-fast build-frontend-fast
-
-
-
-# ============================================================================
-# Локальная разработка (БЫСТРО для проверки интеграции!)
-# ============================================================================
-# Эти команды запускают сервисы локально без Docker (кроме БД)
-# Идеально для быстрой проверки изменений и отладки
-
-# Запуск только PostgreSQL в Docker
-dev-db:
-	docker-compose up -d postgres
-	@echo "Waiting for database to be ready..."
-	@sleep 3
-	goose -dir $(MIGRATIONS_FOLDER) postgres $(DB_DSN) up
-	@echo "✓ Database is ready!"
-	@echo "  Run 'make dev-backend' in another terminal to start backend"
-	@echo "  Run 'make dev-frontend' in another terminal to start frontend"
-
-# Запуск backend локально (требует запущенной БД: make dev-db)
-dev-backend:
-	@echo "Starting backend locally..."
-	@echo "Make sure PostgreSQL is running (use 'make dev-db' to start it)"
-	cd backend && go run cmd/main.go
-
-# Запуск frontend локально (требует запущенного backend: make dev-backend)
-dev-frontend:
-	@echo "Starting frontend locally..."
-	@echo "Make sure backend is running on http://localhost:3000"
-	cd frontend && NEXT_PUBLIC_API_URL=http://localhost:3000 PORT=3001 pnpm dev
-
-# Запуск всего стека локально в одном терминале
-# ВАЖНО: Используйте отдельные терминалы для лучшего контроля логов
-dev-all: dev-db
-	@echo "Starting backend and frontend locally..."
-	@echo "Backend: http://localhost:3000"
-	@echo "Frontend: http://localhost:3001"
-	@echo "Press Ctrl+C to stop all services"
-	@trap 'kill 0' EXIT; \
-	cd backend && go run cmd/main.go & \
-	cd frontend && NEXT_PUBLIC_API_URL=http://localhost:3000 PORT=3001 pnpm dev & \
-	wait
-
-
-# ============================================================================
-# Включение/выключения сервиса
-# ============================================================================
-.PHONY: up
-up:
-	docker-compose up -d
-
-.PHONY: down
-down:
-	docker-compose down
-
-
-# пока закомментил, потому, что в обычном up теперь тоже должны накатываться миграшки 
-# (закомментил там проверку DB_SSLMODE при накате миграций, они отрабатывают всегда)
-# 
-# Для локальной разработки
-# с удалением volumes в контейнера постегреса, могут потеряться данные
-# l-up: up
-# 	goose -dir $(MIGRATIONS_FOLDER) postgres $(DB_DSN) up
-
-# бд щас живет на хосте компа, поэтому данные удалятся, если сделать эту штуку, а пока могу стопать сервис, но данные в бд останутся 
-# (из-за volumes в postgres контейнере)
-l-down:
-	docker-compose down -v --remove-orphans
-
-
-# очистка кэша сборок, все не использующиеся в данный момент контейнеры, образы, созданные сети
-cleanup:
-	docker system prune -a --volumes
-
-
-# ps
-# поднятие с доступом в локальной сети:
-# 1. команда ipconfig getifaddr en0 для получения ip компа в локальной сети
-# 2. make up для поднятия
-# 3. зайти на {ip из шага 1}:8080
-
-# для доступа из интернета
-# >>> todo https://chat.deepseek.com/share/ci0crlw4avwuiufyhp
-# >>> в этом контексте сделал доступ из локальной сети, задал вопрос про доступ из инета, чето он ответил, надо разбираться
+%:
+	@$(MAKE) -f Makefile.local $@

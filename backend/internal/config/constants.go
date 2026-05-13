@@ -3,7 +3,7 @@ package config
 // API endpoints group
 const (
 	// PingEndpoint ...
-	PingEndpoint = "/api/ping"
+	PingEndpoint = "/ping"
 
 	// UserRegisterEndpoint ...
 	UserRegisterEndpoint = "/user/register"
@@ -21,5 +21,5 @@ const (
 	// PaymentsCreate ...
 	PaymentsCreate = "/payments/create"
 	// PaymentsDelete ...
-	PaymentsDelete = "/api/payments/delete"
+	PaymentsDelete = "/payments/delete"
 )
