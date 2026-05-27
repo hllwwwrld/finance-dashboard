@@ -11,7 +11,7 @@ help:
 	@echo "  make dev-all           dev-db + backend + frontend в одном терминале"
 	@echo "  make lint / format / deps / bin-deps"
 	@echo ""
-	@echo "Сервер / интернет / полный Docker (см. docker-compose.yml):"
+	@echo "Сервер / Docker (HTTP и HTTPS — см. make -f Makefile.prod help):"
 	@echo "  make -f Makefile.prod help"
 
 %:

@@ -1,0 +1,12 @@
+# Подключать вместе с docker-compose.yml при HTTPS:
+#   make -f Makefile.prod up-https
+# Нужны файлы nginx/ssl/fullchain.pem и nginx/ssl/privkey.pem
+# (make ssl-selfsigned или сертификаты Let's Encrypt / провайдера).
+
+services:
+  nginx:
+    ports:
+      - "${NGINX_HTTPS_PORT:-8443}:443"
+    volumes:
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+      - ./nginx/default-ssl.conf:/etc/nginx/conf.d/default.conf:ro

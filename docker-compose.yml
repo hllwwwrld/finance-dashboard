@@ -1,5 +1,8 @@
 # Полный стек: Postgres → миграции → backend → frontend → nginx.
-# Запуск: make -f Makefile.prod up → http://localhost:${NGINX_PORT:-8080} (basic-auth: make -f Makefile.prod nginx-htpasswd …).
+# HTTP: make -f Makefile.prod up → http://localhost:${NGINX_PORT:-8080}
+# HTTPS: make -f Makefile.prod ssl-selfsigned SSL_DOMAIN=… затем make -f Makefile.prod up-https
+#   (или положите nginx/ssl/fullchain.pem + privkey.pem сами). Порт HTTPS: NGINX_HTTPS_PORT (по умолчанию 8443).
+# basic-auth: make -f Makefile.prod nginx-htpasswd …
 # Учётные данные БД: POSTGRES_* (те же значения используют backend и миграции).
 # Локальная отладка: make dev-db && make dev-backend && make dev-frontend (см. Makefile + Makefile.local).
 

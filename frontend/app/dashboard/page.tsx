@@ -8,6 +8,7 @@ import Dashboard from "@/components/dashboard"
 import PaymentForm from "@/components/payment-form"
 import {fetchPayments, createPayment, deletePayment, type Payment, DeletePaymentRequest} from "@/lib/api/payment"
 import {fetchUserProfile, updateMonthlyIncome, UpdateMonthlyIncomeRequest, logout} from "@/lib/api/user"
+import {cn} from "@/lib/utils"
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -17,7 +18,6 @@ export default function DashboardPage() {
     const [error, setError] = useState<string | null>(null)
     const [showForm, setShowForm] = useState(false)
     const [monthlyIncome, setMonthlyIncome] = useState<number | null>(null)
-    const [paymentsOpen, setPaymentsOpen] = useState(true)
     const [sidebarOpen, setSidebarOpen] = useState(false)
     const [paymentsLoaded, setPaymentsLoaded] = useState(false)
     const [profileLoaded, setProfileLoaded] = useState(false)
@@ -127,36 +127,17 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-background">
-            {!sidebarOpen && (
-                <div className="absolute top-4 right-4 z-50">
-                    <Button onClick={handleLogout} variant="ghost" size="sm" className="gap-2">
-                        <LogOut className="h-4 w-4"/>
-                        Выйти
-                    </Button>
-                </div>
-            )}
+            <div className="flex h-screen overflow-hidden">
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
+                    <div className={cn("relative flex h-full min-w-0 flex-col", !sidebarOpen && "pr-11")}>
+                        <div className="flex shrink-0 items-center justify-end border-b border-border/50 px-6 py-3 lg:px-8">
+                            <Button onClick={handleLogout} variant="ghost" size="sm" className="gap-2 shrink-0">
+                                <LogOut className="h-4 w-4"/>
+                                Выйти
+                            </Button>
+                        </div>
 
-            <div className="flex h-screen flex-col lg:flex-row">
-                <div
-                    className={`transition-all duration-300 ${
-                        paymentsOpen ? "flex-1" : "w-0"
-                    } overflow-hidden lg:overflow-y-auto`}
-                >
-                    <div className="relative h-full">
-                        <Button
-                            onClick={() => setPaymentsOpen(!paymentsOpen)}
-                            size="icon"
-                            variant="ghost"
-                            className="absolute top-6 left-6 z-10 h-9 w-9"
-                        >
-                            {paymentsOpen ? (
-                                <ChevronLeft className="h-5 w-5"/>
-                            ) : (
-                                <ChevronRight className="h-5 w-5"/>
-                            )}
-                        </Button>
-
-                        <div className="p-6 lg:p-8 h-full overflow-y-auto">
+                        <div className="w-full flex-1 overflow-y-auto p-6 lg:p-8 pt-4 lg:pt-6">
                             {isDataLoaded ? (
                                 <Dashboard
                                     totalExpenses={totalExpenses}
@@ -164,6 +145,7 @@ export default function DashboardPage() {
                                     remaining={computedRemaining}
                                     payments={payments}
                                     onIncomeChange={handleIncomeChange}
+                                    onOpenPayments={() => setSidebarOpen(true)}
                                 />
                             ) : (
                                 <div className="flex items-center justify-center h-64">
@@ -171,26 +153,44 @@ export default function DashboardPage() {
                                 </div>
                             )}
                         </div>
+
+                        {!sidebarOpen && (
+                            <button
+                                type="button"
+                                onClick={() => setSidebarOpen(true)}
+                                title="Открыть список платежей"
+                                aria-label="Открыть список платежей"
+                                className="absolute inset-y-0 right-0 z-20 flex w-9 items-center justify-center rounded-l-md border border-r-0 border-border bg-sidebar shadow-sm transition-colors hover:bg-sidebar-accent/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            >
+                                <ChevronLeft className="h-5 w-5"/>
+                            </button>
+                        )}
                     </div>
                 </div>
 
                 <div
-                    className={`border-t border-border bg-sidebar transition-all duration-300 relative ${
-                        sidebarOpen ? "p-6 lg:w-96 lg:border-t-0 lg:border-l" : "w-0 p-0 border-0 overflow-hidden"
-                    } lg:overflow-y-auto`}
+                    className={`shrink-0 overflow-hidden border-border bg-sidebar transition-[width] duration-300 ease-in-out ${
+                        sidebarOpen
+                            ? "w-96 border-l p-6 overflow-y-auto max-lg:fixed max-lg:inset-y-0 max-lg:right-0 max-lg:z-30 max-lg:shadow-lg"
+                            : "w-0 border-0 p-0"
+                    }`}
                 >
                     {sidebarOpen && (
                         <>
-                            <Button
-                                onClick={() => setSidebarOpen(false)}
-                                size="icon"
-                                variant="ghost"
-                                className="absolute top-6 left-6 z-10 h-9 w-9"
-                            >
-                                <ChevronRight className="h-5 w-5"/>
-                            </Button>
-                            <div className="flex items-center justify-between mb-6 pl-14">
-                                <h2 className="text-2xl font-semibold text-foreground">Платежи</h2>
+                            <div className="mb-6 flex items-center justify-between gap-2">
+                                <div className="flex min-w-0 items-center gap-2">
+                                    <Button
+                                        onClick={() => setSidebarOpen(false)}
+                                        size="icon"
+                                        variant="ghost"
+                                        className="h-9 w-9 shrink-0"
+                                        title="Скрыть список платежей"
+                                        aria-label="Скрыть список платежей"
+                                    >
+                                        <ChevronRight className="h-5 w-5"/>
+                                    </Button>
+                                    <h2 className="text-2xl font-semibold text-foreground truncate">Платежи</h2>
+                                </div>
                                 <div className="flex items-center gap-2">
                                     <Button
                                         onClick={handleRefreshPayments}
@@ -275,17 +275,6 @@ export default function DashboardPage() {
                         </>
                     )}
                 </div>
-
-                {!sidebarOpen && (
-                    <Button
-                        onClick={() => setSidebarOpen(true)}
-                        size="icon"
-                        variant="ghost"
-                        className="fixed top-1/2 right-4 z-10 h-9 w-9 -translate-y-1/2"
-                    >
-                        <ChevronLeft className="h-5 w-5"/>
-                    </Button>
-                )}
             </div>
         </div>
     )

@@ -23,6 +23,7 @@ interface DashboardProps {
     remaining: number
     payments: Payment[]
     onIncomeChange: (income: number) => void
+    onOpenPayments: () => void
 }
 
 export default function Dashboard({
@@ -31,6 +32,7 @@ export default function Dashboard({
                                       remaining = 0,
                                       payments = [],
                                       onIncomeChange,
+                                      onOpenPayments,
                                   }: DashboardProps) {
     const [isEditingIncome, setIsEditingIncome] = useState(false)
     const [incomeInput, setIncomeInput] = useState(monthlyIncome?.toString() || '0')
@@ -137,7 +139,7 @@ export default function Dashboard({
                 <SpendingChart payments={payments}/>
 
                 {/* Предстоящие платежи */}
-                <UpcomingPayments payments={payments}/>
+                <UpcomingPayments payments={payments} onOpen={onOpenPayments}/>
             </div>
         </div>
     )

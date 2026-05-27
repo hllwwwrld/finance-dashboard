@@ -1,39 +1,55 @@
 include include.mk
 
-.PHONY: help up down down-v build build-nc build-fast nginx-htpasswd prune
+SSL_DOMAIN ?= localhost
+
+.PHONY: help up up-https down down-v build build-nc build-fast nginx-htpasswd ssl-selfsigned prune
 
 help:
 	@echo "Полный стек (docker compose): Postgres → миграции → backend → frontend → nginx"
-	@echo "  make -f Makefile.prod nginx-htpasswd HTPASSWD_USER=u HTPASSWD_PASS=p   — один раз, пароль basic-auth"
-	@echo "  make -f Makefile.prod up          — поднять всё"
-	@echo "  make -f Makefile.prod down        — остановить"
-	@echo "  make -f Makefile.prod down-v      — остановить и удалить volume БД"
-	@echo "  make -f Makefile.prod build       — пересобрать образы (с кешем)"
-	@echo "  make -f Makefile.prod build-nc    — пересобрать без кеша"
-	@echo "Откройте http://localhost:$${NGINX_PORT:-8080} или http://<IP_сервера>:$${NGINX_PORT:-8080}"
-	@echo "команда для получения ip: ipconfig getifaddr en0"
+	@echo "  make -f Makefile.prod nginx-htpasswd HTPASSWD_USER=u HTPASSWD_PASS=p"
+	@echo "  make -f Makefile.prod up              — только HTTP (порт NGINX_PORT, по умолчанию 8080)"
+	@echo "  make -f Makefile.prod ssl-selfsigned  — самоподписанный сертификат в nginx/ssl/ (SSL_DOMAIN=$(SSL_DOMAIN) по умолчанию)"
+	@echo "  make -f Makefile.prod up-https       — HTTP + HTTPS (нужны nginx/ssl/fullchain.pem и privkey.pem)"
+	@echo "  make -f Makefile.prod down | down-v | build | build-nc | prune"
+	@echo "HTTP:  http://localhost:$${NGINX_PORT:-8080}"
+	@echo "HTTPS: https://localhost:$${NGINX_HTTPS_PORT:-8443}  (на сервере часто NGINX_HTTPS_PORT=443)"
+	@echo "Свои сертификаты (Let's Encrypt и т.д.): положите fullchain.pem и privkey.pem в nginx/ssl/, затем up-https."
+	@echo "Команда для получения текущего динамического ip машины ipconfig getifaddr en0"
+
 
 up:
-	docker-compose up -d
+	docker-compose -f docker-compose.yml up -d
+
+up-https:
+	@test -f nginx/ssl/privkey.pem && test -f nginx/ssl/fullchain.pem || (echo "Сначала: make -f Makefile.prod ssl-selfsigned  или добавьте fullchain.pem и privkey.pem в nginx/ssl/" && false)
+	docker-compose -f docker-compose.yml -f docker-compose.ssl.yml up -d
 
 down:
-	docker-compose down
+	docker-compose -f docker-compose.yml down
 
-# если надо очистить данные из базы (удаляет ваще все, иначе лучше использовать команду down)
 down-v:
-	docker-compose down -v --remove-orphans
+	docker-compose -f docker-compose.yml down -v --remove-orphans
 
 build:
-	docker-compose build
+	docker-compose -f docker-compose.yml build
 
 build-nc:
-	docker-compose build --no-cache backend frontend migrations nginx
+	docker-compose -f docker-compose.yml build --no-cache backend frontend migrations nginx
 
 build-fast: build
 
 nginx-htpasswd:
 	@test -n "$(HTPASSWD_USER)" && test -n "$(HTPASSWD_PASS)" || (echo "HTPASSWD_USER и HTPASSWD_PASS обязательны" && false)
 	@$(DOCKER) run --rm httpd:2-alpine htpasswd -nbB "$(HTPASSWD_USER)" "$(HTPASSWD_PASS)" > nginx/.htpasswd
+
+ssl-selfsigned:
+	@mkdir -p nginx/ssl
+	@$(DOCKER) run --rm -v "$(CURDIR)/nginx/ssl:/out" alpine:3.19 sh -c '\
+		apk add -q openssl && \
+		openssl req -x509 -nodes -newkey rsa:2048 -days 825 \
+			-keyout /out/privkey.pem -out /out/fullchain.pem \
+			-subj "/CN=$(SSL_DOMAIN)" \
+			-addext "subjectAltName=DNS:$(SSL_DOMAIN),DNS:localhost,IP:127.0.0.1"'
 
 prune:
 	$(DOCKER) system prune -a --volumes

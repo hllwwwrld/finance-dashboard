@@ -15,9 +15,10 @@ interface Payment {
 
 interface UpcomingPaymentsProps {
     payments: Payment[]
+    onOpen: () => void
 }
 
-export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
+export default function UpcomingPayments({ payments, onOpen }: UpcomingPaymentsProps) {
     const today = new Date()
     const currentDay = today.getDate()
 
@@ -31,7 +32,19 @@ export default function UpcomingPayments({ payments }: UpcomingPaymentsProps) {
         .slice(0, 5)
 
     return (
-        <Card className="bg-card p-6 shadow-none border border-border/50">
+        <Card
+            role="button"
+            tabIndex={0}
+            onClick={onOpen}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    onOpen()
+                }
+            }}
+            className="cursor-pointer bg-card p-6 shadow-none border border-border/50 transition-colors hover:border-primary/40 hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Открыть список платежей"
+        >
             <div className="flex items-center gap-3 mb-6">
                 <Calendar className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">Предстоящие платежи</h2>
