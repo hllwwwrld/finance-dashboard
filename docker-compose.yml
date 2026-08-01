@@ -12,8 +12,6 @@ services:
     container_name: finance-dashboard-nginx
     ports:
       - "${NGINX_PORT:-8080}:81"
-    volumes:
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
     depends_on:
       - frontend
       - backend
@@ -29,8 +27,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-dashboard}
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-dashboard}"]
       interval: 10s
@@ -101,9 +97,6 @@ services:
       - backend
     networks:
       - dashboard-network
-
-volumes:
-  postgres_data:
 
 networks:
   dashboard-network:
