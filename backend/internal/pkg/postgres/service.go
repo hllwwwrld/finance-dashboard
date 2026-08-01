@@ -54,11 +54,11 @@ func New(ctx context.Context) (*Service, error) {
 
 // buildDSN строит строку подключения (Data Source Name) для PostgreSQL
 func buildDSN() string {
-	host := getEnv("DB_HOST", "localhost")
-	port := getEnv("DB_PORT", "5432")
-	user := getEnv("DB_USER", "postgres")
-	password := getEnv("DB_PASSWORD", "postgres")
-	dbname := getEnv("DB_NAME", "dashboard")
+	host := getEnv("POSTGRES_HOST", "localhost")
+	port := getEnv("POSTGRES_PORT", "5432")
+	user := getEnv("POSTGRES_USER", "postgres")
+	password := getEnv("POSTGRES_PASSWORD", "postgres")
+	dbname := getEnv("POSTGRES_DB", "dashboard")
 	sslmode := getEnv("DB_SSLMODE", "disable") // disable для локальной разработки
 
 	// Формат DSN для lib/pq: postgres://user:password@host:port/dbname?sslmode=disable
