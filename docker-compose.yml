@@ -7,6 +7,19 @@
 # Локальная отладка: make dev-db && make dev-backend && make dev-frontend (см. Makefile + Makefile.local).
 
 services:
+  nginx:nginx:
+    build: ./nginx
+    container_name: finance-dashboard-nginx
+    ports:
+      - "${NGINX_PORT:-8080}:81"
+    volumes:
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - dashboard-network
+
   postgres:
     image: postgres:16-alpine
     container_name: finance-dashboard-postgres
@@ -85,19 +98,6 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: /api
     depends_on:
-      - backend
-    networks:
-      - dashboard-network
-
-  nginx:
-    build: ./nginx
-    container_name: finance-dashboard-nginx
-    ports:
-      - "${NGINX_PORT:-8080}:80"
-    volumes:
-      - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
-    depends_on:
-      - frontend
       - backend
     networks:
       - dashboard-network
