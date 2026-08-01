@@ -7,6 +7,17 @@
 # Локальная отладка: make dev-db && make dev-backend && make dev-frontend (см. Makefile + Makefile.local).
 
 services:
+  nginx:
+    build: ./nginx
+    container_name: finance-dashboard-nginx
+    ports:
+      - "${NGINX_PORT:-8080}:81"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - dashboard-network
+
   postgres:
     image: postgres:16-alpine
     container_name: finance-dashboard-postgres
