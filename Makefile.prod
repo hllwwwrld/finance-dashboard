@@ -14,7 +14,6 @@ help:
 	@echo "HTTP:  http://localhost:$${NGINX_PORT:-8080}"
 	@echo "HTTPS: https://localhost:$${NGINX_HTTPS_PORT:-8443}  (на сервере часто NGINX_HTTPS_PORT=443)"
 	@echo "Свои сертификаты (Let's Encrypt и т.д.): положите fullchain.pem и privkey.pem в nginx/ssl/, затем up-https."
-	@echo "Команда для получения текущего динамического ip машины ipconfig getifaddr en0"
 
 
 up:

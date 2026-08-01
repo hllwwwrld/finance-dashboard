@@ -13,6 +13,7 @@ help:
 	@echo ""
 	@echo "Сервер / Docker (HTTP и HTTPS — см. make -f Makefile.prod help):"
 	@echo "  make -f Makefile.prod help"
+	@echo "Команда для получения текущего динамического ip машины ipconfig getifaddr en0"
 
 %:
 	@$(MAKE) -f Makefile.local $@
