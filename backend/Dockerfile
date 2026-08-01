@@ -15,7 +15,7 @@ RUN go install github.com/pressly/goose/v3/cmd/goose@latest
 
 FROM alpine:latest
 
-RUN apk --no-cache add ca-certificates tzdata
+# RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/
 
