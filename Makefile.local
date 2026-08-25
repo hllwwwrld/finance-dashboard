@@ -11,26 +11,6 @@ help-local:
 	@echo "make dev-db | dev-backend | dev-frontend | dev-frontend-lan | dev-all"
 	@echo "make lint | format | deps | bin-deps"
 
-# ====================
-# Команды для бека
-# ====================
-
-bin-deps:
-	GOBIN=$(LOCAL_BIN) go install golang.org/x/tools/cmd/goimports@latest
-	GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	GOBIN=$(LOCAL_BIN) go install honnef.co/go/tools/cmd/staticcheck@latest
-
-deps:
-	go install golang.org/x/tools/cmd/goimports@latest
-	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-	go install honnef.co/go/tools/cmd/staticcheck@latest
-
-lint:
-	golangci-lint run
-	staticcheck ./backend/...
-
-format:
-	goimports -w ./backend/...
 
 # ====================
 # Поднятие сервиса

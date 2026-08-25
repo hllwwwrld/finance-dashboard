@@ -11,12 +11,14 @@ services:
     build: ./nginx
     container_name: finance-dashboard-nginx
     ports:
-      - "${NGINX_PORT:-8080}:81"
+      - "${NGINX_PORT:-8080}:81" # могу ли использовать тут и в nginx/*.conf server.listen 80 порт
     depends_on:
       - frontend
       - backend
     networks:
       - dashboard-network
+    # volumes:
+    #   - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
 
   postgres:
     image: postgres:16-alpine
@@ -34,6 +36,8 @@ services:
       retries: 5
     networks:
       - dashboard-network
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
 
   migrations:
     build:
@@ -101,3 +105,7 @@ services:
 networks:
   dashboard-network:
     driver: bridge
+
+# все директивы volumes нельзя использовать в timeweb хостинге
+# volumes:
+#   postgres_data: 

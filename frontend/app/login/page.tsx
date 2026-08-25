@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { login } from "@/lib/api/user"
+import { isMockApiMode } from "@/lib/env"
 
 export default function LoginPage() {
   const router = useRouter()
@@ -79,11 +80,13 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="mt-6 text-xs text-muted-foreground text-center">
-            <p>Демо аккаунты:</p>
-            <p className="mt-1">admin / password123</p>
-            <p>user / demo</p>
-          </div>
+          {isMockApiMode && (
+            <div className="mt-6 text-xs text-muted-foreground text-center">
+              <p>Демо аккаунты:</p>
+              <p className="mt-1">admin / password123</p>
+              <p>user / demo</p>
+            </div>
+          )}
 
           <div className="mt-4 text-xs text-muted-foreground text-center">
             <span>Нет аккаунта? </span>

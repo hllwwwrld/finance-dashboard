@@ -1,9 +1,10 @@
 "use client"
 
 import {useState} from "react"
-import {TrendingDown, Wallet} from "lucide-react"
+import {Check, TrendingDown, Wallet} from "lucide-react"
 import {Card} from "@/components/ui/card"
 import {Button} from "@/components/ui/button"
+import {cn} from "@/lib/utils"
 import UpcomingPayments from "./upcoming-payments"
 import SpendingChart from "./spending-chart"
 
@@ -37,6 +38,11 @@ export default function Dashboard({
     const [isEditingIncome, setIsEditingIncome] = useState(false)
     const [incomeInput, setIncomeInput] = useState(monthlyIncome?.toString() || '0')
 
+    const startEditingIncome = () => {
+        setIncomeInput(monthlyIncome?.toString() || "0")
+        setIsEditingIncome(true)
+    }
+
     const handleSaveIncome = () => {
         const newIncome = Number.parseFloat(incomeInput)
         if (!isNaN(newIncome) && newIncome > 0) {
@@ -45,9 +51,13 @@ export default function Dashboard({
         }
     }
 
+    const handleCancelEditIncome = () => {
+        setIncomeInput(monthlyIncome?.toString() || "0")
+        setIsEditingIncome(false)
+    }
+
     const expensePercentage = monthlyIncome > 0 ? (totalExpenses / monthlyIncome) * 100 : 0
 
-    //todo сделать весь элемент Card кликабельным, как кнопку, а не только сумму
     return (
         <div className="space-y-6">
             {/* Финансовый обзор */}
@@ -61,33 +71,57 @@ export default function Dashboard({
             {/* Статистика */}
             <div className="grid gap-4 md:grid-cols-3">
                 {/* Доход */}
-                <Card className="bg-card p-6 shadow-none border border-border/50">
+                <Card
+                    role={isEditingIncome ? undefined : "button"}
+                    tabIndex={isEditingIncome ? undefined : 0}
+                    onClick={() => !isEditingIncome && startEditingIncome()}
+                    onKeyDown={(e) => {
+                        if (!isEditingIncome && (e.key === "Enter" || e.key === " ")) {
+                            e.preventDefault()
+                            startEditingIncome()
+                        }
+                    }}
+                    className={cn(
+                        "bg-card p-6 shadow-none border border-border/50",
+                        !isEditingIncome && "cursor-pointer hover:border-primary/50 hover:bg-muted/30 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    )}
+                >
                     <div className="flex items-start justify-between mb-4">
                         <div>
                             <p className="text-sm font-medium text-muted-foreground mb-1">Доход</p>
                             {isEditingIncome ? (
-                                <div className="flex gap-2">
+                                <div
+                                    className="flex gap-2"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onKeyDown={(e) => e.stopPropagation()}
+                                >
                                     <input
                                         type="number"
                                         value={incomeInput}
                                         onChange={(e) => setIncomeInput(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleSaveIncome()
+                                            if (e.key === "Escape") handleCancelEditIncome()
+                                        }}
                                         className="bg-muted rounded px-2 py-1 text-foreground font-bold text-2xl w-32"
                                         autoFocus
                                     />
-                                    <Button onClick={handleSaveIncome} size="sm" className="h-8">
-                                        ✓
+                                    <Button
+                                        onClick={handleSaveIncome}
+                                        size="icon"
+                                        className="hover:text-primary"
+                                        aria-label="Сохранить доход"
+                                    >
+                                        <Check className="size-5" strokeWidth={2} />
                                     </Button>
                                 </div>
                             ) : (
-                                <p
-                                    className="text-3xl font-bold text-foreground cursor-pointer hover:text-primary transition-colors"
-                                    onClick={() => setIsEditingIncome(true)}
-                                >
+                                <p className="text-3xl font-bold text-foreground">
                                     {monthlyIncome.toLocaleString()} ₽
                                 </p>
                             )}
                         </div>
-                        <Wallet className="h-8 w-8 text-primary"/>
+                        <Wallet className="h-8 w-8 text-primary pointer-events-none"/>
                     </div>
                 </Card>
 

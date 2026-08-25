@@ -1,7 +1,9 @@
 "use client"
 
-import { Calendar, Clock } from "lucide-react"
+import { Calendar, Clock, Info } from "lucide-react"
 import { Card } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { formatDaysUntil } from "@/lib/utils"
 
 interface Payment {
     id: string
@@ -19,9 +21,6 @@ interface UpcomingPaymentsProps {
 }
 
 export default function UpcomingPayments({ payments, onOpen }: UpcomingPaymentsProps) {
-    const today = new Date()
-    const currentDay = today.getDate()
-
     const upcoming = payments
         // .map((p) => ({
         //     ...p,
@@ -48,6 +47,22 @@ export default function UpcomingPayments({ payments, onOpen }: UpcomingPaymentsP
             <div className="flex items-center gap-3 mb-6">
                 <Calendar className="h-5 w-5 text-primary" />
                 <h2 className="text-lg font-semibold text-foreground">Предстоящие платежи</h2>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button
+                            type="button"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            className="inline-flex rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                            aria-label="Подсказка о предстоящих платежах"
+                        >
+                            <Info className="h-4 w-4" />
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top" className="max-w-xs">
+                        5 ближайших платежей, у которых дата оплаты ещё не наступила
+                    </TooltipContent>
+                </Tooltip>
             </div>
 
             <div className="space-y-3">
@@ -63,12 +78,8 @@ export default function UpcomingPayments({ payments, onOpen }: UpcomingPaymentsP
                                 <div className="h-8 w-8 rounded-lg flex-shrink-0" style={{ backgroundColor: payment.color }} />
                                 <div className="min-w-0 flex-1">
                                     <p className="font-medium text-foreground truncate">{payment.name}</p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {payment.daysUntil === 0
-                                            ? "Сегодня"
-                                            : payment.daysUntil === 1
-                                                ? "Завтра"
-                                                : `Через ${payment.daysUntil} дн.`}
+                                    <p className="text-xs text-muted-foreground capitalize">
+                                        {formatDaysUntil(payment.daysUntil)}
                                     </p>
                                 </div>
                             </div>

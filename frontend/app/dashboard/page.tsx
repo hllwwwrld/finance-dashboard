@@ -2,13 +2,14 @@
 
 import {useState, useEffect} from "react"
 import {useRouter} from "next/navigation"
-import {Trash2, ChevronLeft, ChevronRight, Clock, Loader2, RefreshCw, LogOut} from "lucide-react"
+import {Trash2, ChevronLeft, ChevronRight, Clock, Info, Loader2, RefreshCw, LogOut} from "lucide-react"
 import {Button} from "@/components/ui/button"
 import Dashboard from "@/components/dashboard"
 import PaymentForm from "@/components/payment-form"
 import {fetchPayments, createPayment, deletePayment, type Payment, DeletePaymentRequest} from "@/lib/api/payment"
 import {fetchUserProfile, updateMonthlyIncome, UpdateMonthlyIncomeRequest, logout} from "@/lib/api/user"
-import {cn} from "@/lib/utils"
+import {cn, formatDaysUntil} from "@/lib/utils"
+import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip"
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -190,6 +191,20 @@ export default function DashboardPage() {
                                         <ChevronRight className="h-5 w-5"/>
                                     </Button>
                                     <h2 className="text-2xl font-semibold text-foreground truncate">Платежи</h2>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button
+                                                type="button"
+                                                className="inline-flex shrink-0 rounded-full text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                aria-label="Подсказка о списке платежей"
+                                            >
+                                                <Info className="h-4 w-4"/>
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent side="bottom" className="max-w-xs">
+                                            Список всех запланированных платежей
+                                        </TooltipContent>
+                                    </Tooltip>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Button
@@ -257,13 +272,26 @@ export default function DashboardPage() {
                                                         {payment.amount.toLocaleString()} ₽
                                                     </p>
                                                     {isUpcomingThisWeek(payment) && (
-                                                        <Clock className="h-4 w-4 text-orange-500 flex-shrink-0"/>
+                                                        <Tooltip>
+                                                            <TooltipTrigger asChild>
+                                                                <button
+                                                                    type="button"
+                                                                    className="inline-flex flex-shrink-0 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                                                    aria-label={`Платёж ${formatDaysUntil(payment.daysUntil)}`}
+                                                                >
+                                                                    <Clock className="h-4 w-4 text-orange-500"/>
+                                                                </button>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent side="left" className="max-w-xs">
+                                                                До платежа осталось 7 дней или меньше. Этот платеж наступит {formatDaysUntil(payment.daysUntil)}
+                                                            </TooltipContent>
+                                                        </Tooltip>
                                                     )}
                                                     <Button
                                                         onClick={() => handleDeletePayment({id: payment.id})}
                                                         size="icon"
                                                         variant="ghost"
-                                                        className="h-6 w-6 opacity-0 transition-opacity group-hover:opacity-100 flex-shrink-0"
+                                                        className="h-6 w-6 flex-shrink-0"
                                                     >
                                                         <Trash2 className="h-3 w-3 text-destructive"/>
                                                     </Button>
