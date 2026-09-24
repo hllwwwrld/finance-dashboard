@@ -84,7 +84,7 @@ Frontend собран с `NEXT_PUBLIC_API_URL=/api` — браузер обра�
 
 - Docker (только для Postgres)
 - Go 1.25+
-- Node.js 20+, pnpm
+- Node.js 24+ (для npm 12), pnpm 10.28+
 - [goose](https://github.com/pressly/goose) (`go install github.com/pressly/goose/v3/cmd/goose@latest`)
 
 
